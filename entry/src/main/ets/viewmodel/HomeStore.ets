@@ -7,7 +7,13 @@ import { DayTaskRepository } from '../data/db/DayTaskRepository';
 import { PreferencesRepository } from '../data/prefs/PreferencesRepository';
 import { FormService } from '../services/FormService';
 import { checkinTask, canCheckin } from '../domain/rules/TaskRules';
-import { isAllTasksCompleted, onAllTasksCompleted, onNewDay, ConsecutiveDaysState } from '../domain/rules/ConsecutiveDaysRules';
+import {
+  isAllTasksCompleted,
+  onAllTasksCompleted,
+  onNewDay,
+  reconcileCurrentDayCompletion,
+  ConsecutiveDaysState
+} from '../domain/rules/ConsecutiveDaysRules';
 import { initializeDayData, ensureDayTaskSnapshots, recalculateDayInfo, removeInactiveTaskFromDay } from '../domain/rules/DayInitRules';
 import { getToday, getDateOffset, compareDate } from '../domain/utils/DateUtils';
 import { getTaskCatalogItem } from '../domain/constants/TaskCatalog';
@@ -67,6 +73,8 @@ export class HomeStore {
 
     // 初始化今天的数据
     await this.initDayData(today);
+    this.consecutiveState = reconcileCurrentDayCompletion(this.dayInfo, this.consecutiveState);
+    await this.prefRepo.saveConsecutiveState(this.consecutiveState);
 
     // 加载所有任务
     this.allTasks = await this.taskRepo.getAllTasks();
@@ -228,9 +236,9 @@ export class HomeStore {
     task.isOpen = false;
     await this.taskRepo.updateTask(task);
 
-    // 从今天任务列表移除未完成的
+    // 从今天任务列表移除该任务；历史日期的完成记录保留。
     const today = getToday();
-    await this.dayTaskRepo.deleteUnfinishedTask(today, taskId);
+    await this.dayTaskRepo.deleteDayTask(today, taskId);
     const todayData = await this.loadDayData(today);
 
     if (this.selectedDate === today) {

@@ -12,37 +12,46 @@ struct TaskClockDialog {
 
   build() {
     Column() {
-      Image(this.getDialogIcon())
-        .width(80)
-        .height(80)
-        .margin({ top: 24 })
-
       Text(this.getTaskName())
-        .fontSize(20)
-        .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.text_primary'))
-        .margin({ top: 16 })
+        .fontSize(22)
+        .fontWeight(FontWeight.Bold)
+        .fontColor('#FFFFFF')
+        .width('100%')
+        .textAlign(TextAlign.Start)
+        .padding({ left: 28 })
 
       Text(this.getProgressText())
         .fontSize(14)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 8 })
+        .fontColor('#E6FFFFFF')
+        .width('100%')
+        .textAlign(TextAlign.Start)
+        .padding({ left: 28 })
+        .margin({ top: 6 })
 
-      Button($r('app.string.clock_in'))
+      Button(this.dayTask.isDone ? $r('app.string.was_done') : $r('app.string.clock_in'))
         .type(ButtonType.Capsule)
-        .backgroundColor($r('app.color.text_font_color'))
+        .backgroundColor($r('app.color.task_clock_bg_color'))
         .fontColor('#FFFFFF')
-        .width('60%')
-        .height(40)
-        .margin({ top: 24, bottom: 24 })
+        .fontSize(20)
+        .width(220)
+        .height(48)
+        .margin({ top: 20 })
         .onClick(() => {
-          this.onConfirm();
+          if (!this.dayTask.isDone) {
+            this.onConfirm();
+          }
           this.controller.close();
         })
     }
-    .width('80%')
-    .backgroundColor($r('app.color.bg_card'))
-    .borderRadius(16)
+    .width(316)
+    .height(451)
+    .justifyContent(FlexAlign.End)
+    .padding({ bottom: 18 })
+    .backgroundImage(this.getDialogIcon(), ImageRepeat.NoRepeat)
+    .backgroundImageSize({
+      width: '100%',
+      height: '100%'
+    })
   }
 
   private getDialogIcon(): Resource {

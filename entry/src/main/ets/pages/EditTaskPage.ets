@@ -47,14 +47,26 @@ struct EditTaskPage {
     Column() {
       // 标题栏
       Row() {
+        SymbolGlyph($r('sys.symbol.chevron_left'))
+          .fontSize(24)
+          .fontColor([$r('app.color.text_primary')])
+          .onClick(() => {
+            router.back();
+          })
+
         Text($r('app.string.edit_task'))
           .fontSize(20)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
+          .layoutWeight(1)
+          .textAlign(TextAlign.Center)
+
+        Blank()
+          .width(24)
       }
       .width('100%')
       .height(56)
-      .justifyContent(FlexAlign.Center)
+      .padding({ left: 16, right: 16 })
 
       // 启用开关
       Row() {

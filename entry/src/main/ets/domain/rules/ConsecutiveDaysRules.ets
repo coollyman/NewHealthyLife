@@ -78,6 +78,28 @@ export function onNewDay(
 }
 
 /**
+ * 应用重新初始化或页面重建时，根据当天已保存的 100% 记录恢复“今天已计数”状态。
+ * 这样当天先完成到 100%，之后再添加任务并再次完成，不会重复增加连续天数。
+ */
+export function reconcileCurrentDayCompletion(
+  todayInfo: DayInfo,
+  currentState: ConsecutiveDaysState
+): ConsecutiveDaysState {
+  if (!isAllTasksCompleted(todayInfo) || currentState.currentDayStatus) {
+    return currentState;
+  }
+  if (currentState.currentConsecutiveDays <= 0) {
+    return currentState;
+  }
+  return new ConsecutiveDaysState(
+    currentState.maxConsecutiveDays,
+    currentState.currentConsecutiveDays,
+    true,
+    currentState.newlyUnlockedAchievement
+  );
+}
+
+/**
  * 判断指定天数是否已解锁成就
  */
 export function isAchievementUnlocked(maxDays: number, threshold: number): boolean {

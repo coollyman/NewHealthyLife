@@ -3,8 +3,11 @@ import { DayTaskInfo } from '../../domain/models/DayTaskInfo';
 import { getTaskCatalogItem, TaskType } from '../../domain/constants/TaskCatalog';
 import { isToday } from '../../domain/utils/DateUtils';
 import { TaskClockDialog } from '../dialog/TaskClockDialog';
-import { resourceManager } from '@kit.LocalizationKit';
-import { promptAction } from '@kit.ArkUI';
+import { promptAction, router } from '@kit.ArkUI';
+
+export function buildDayTaskRenderKey(dayTask: DayTaskInfo): string {
+  return `${dayTask.date}-${dayTask.taskId}-${dayTask.finValue}-${dayTask.isDone ? 1 : 0}`;
+}
 
 /**
  * 任务列表组件
@@ -19,29 +22,25 @@ export struct TaskList {
     if (this.homeStore.dayTasks.length === 0) {
       Column() {
         Image($r('app.media.ic_no_data'))
-          .width(120)
-          .height(120)
+          .width(132)
+          .height(100)
+          .margin({ bottom: 8 })
+
         Text($r('app.string.no_task'))
           .fontSize(14)
           .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 12 })
       }
       .width('100%')
-      .layoutWeight(1)
-      .justifyContent(FlexAlign.Center)
+      .margin({ top: 48 })
       .alignItems(HorizontalAlign.Center)
     } else {
-      List({ space: 8 }) {
+      Column() {
         ForEach(this.homeStore.dayTasks, (dayTask: DayTaskInfo) => {
-          ListItem() {
-            this.taskItem(dayTask)
-          }
-        }, (dayTask: DayTaskInfo) => `${dayTask.date}-${dayTask.taskId}`)
+          this.taskItem(dayTask)
+        }, (dayTask: DayTaskInfo) => buildDayTaskRenderKey(dayTask))
       }
       .width('100%')
-      .layoutWeight(1)
-      .padding({ left: 12, right: 12 })
-      .scrollBar(BarState.Off)
+      .padding({ top: '1.5%', left: 16, right: 16 })
     }
   }
 
@@ -49,52 +48,55 @@ export struct TaskList {
   taskItem(dayTask: DayTaskInfo) {
     Row() {
       Image(this.getTaskIcon(dayTask.taskId))
-        .width(40)
-        .height(40)
+        .width(36)
+        .height(36)
+        .objectFit(ImageFit.Contain)
+        .margin({ right: 8 })
 
       Column() {
         Text(this.getTaskName(dayTask.taskId))
           .fontSize(16)
           .fontColor($r('app.color.text_primary'))
-          .fontWeight(FontWeight.Medium)
-
-        Text(this.getTaskProgress(dayTask))
-          .fontSize(12)
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 2 })
+          .fontWeight(FontWeight.Regular)
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
-      .padding({ left: 12 })
 
       if (dayTask.isDone) {
         Text($r('app.string.was_done'))
-          .fontSize(12)
-          .fontColor($r('app.color.text_hint'))
+          .fontSize(16)
+          .fontColor($r('app.color.text_primary'))
+          .fontWeight(FontWeight.Regular)
       } else if (!isToday(this.homeStore.selectedDate)) {
         Text(this.getReadOnlyStatusText())
-          .fontSize(12)
+          .fontSize(16)
           .fontColor($r('app.color.text_hint'))
       } else {
-        Text($r('app.string.clock_in'))
-          .fontSize(12)
-          .fontColor($r('app.color.text_font_color'))
-          .padding({ left: 12, right: 12, top: 4, bottom: 4 })
-          .borderRadius(12)
-          .backgroundColor($r('app.color.user_level_bg_color'))
+        Text(this.getTaskProgress(dayTask))
+          .fontSize(16)
+          .fontColor($r('app.color.text_primary'))
       }
     }
     .width('100%')
-    .height(64)
-    .padding(12)
+    .height(62)
+    .padding({ left: '5%', right: '5%' })
     .backgroundColor($r('app.color.bg_card'))
-    .borderRadius(12)
+    .borderRadius(16)
+    .margin({ bottom: 12 })
     .onClick(() => {
-      if (!dayTask.isDone && isToday(this.homeStore.selectedDate)) {
+      if (isToday(this.homeStore.selectedDate)) {
         this.selectedTask = dayTask;
         this.openDialog();
       }
     })
+    .gesture(LongPressGesture().onAction(() => {
+      if (isToday(this.homeStore.selectedDate)) {
+        router.pushUrl({
+          url: 'pages/EditTaskPage',
+          params: { taskId: dayTask.taskId }
+        });
+      }
+    }))
   }
 
   private getTaskIcon(taskId: number): Resource {
@@ -123,9 +125,17 @@ export struct TaskList {
     if (item.type === TaskType.VALUE) {
       const fin = parseFloat(dayTask.finValue) || 0;
       const target = parseFloat(dayTask.targetValue) || 0;
-      return `${fin}/${target}`;
+      return `${fin > 0 ? fin : '--'} / ${target} ${this.getUnitText(item.unit)}`;
     }
-    return dayTask.targetValue;
+    return `${dayTask.finValue || '--'} / ${dayTask.targetValue} ${this.getUnitText(item.unit)}`;
+  }
+
+  private getUnitText(unit: Resource): string {
+    try {
+      return getContext(this).resourceManager.getStringSync(unit);
+    } catch (e) {
+      return '';
+    }
   }
 
   private getReadOnlyStatusText(): Resource {
@@ -156,6 +166,7 @@ export struct TaskList {
     if (!checked) {
       return;
     }
+    this.selectedTask = null;
     const unlocked = this.homeStore.popNewlyUnlockedAchievement();
     if (unlocked !== null) {
       promptAction.showToast({ message: `连续打卡${unlocked}天成就已解锁` });

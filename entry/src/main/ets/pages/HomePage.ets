@@ -1,8 +1,6 @@
 import { HomeStore } from '../viewmodel/HomeStore';
-import { WeekCalendar } from '../components/home/WeekCalendar';
 import { TaskList } from '../components/home/TaskList';
 import { ProgressHeader } from '../components/home/ProgressHeader';
-import { getToday } from '../domain/utils/DateUtils';
 import { router } from '@kit.ArkUI';
 
 /**
@@ -13,41 +11,47 @@ export struct HomePage {
   @Link homeStore: HomeStore;
 
   build() {
-    Column() {
-      // 顶部进度
-      ProgressHeader({ homeStore: this.homeStore })
+    Stack() {
+      Scroll() {
+        Column() {
+          Text($r('app.string.healthy_life'))
+            .fontSize(24)
+            .fontColor($r('app.color.text_primary'))
+            .fontWeight(FontWeight.Bold)
+            .width('100%')
+            .height(56)
+            .padding({ left: '6.6%' })
+            .position({ x: 0, y: 48 })
+            .zIndex(1)
 
-      // 三周日历
-      WeekCalendar({ homeStore: this.homeStore })
+          ProgressHeader({ homeStore: this.homeStore })
 
-      // 任务列表
-      TaskList({ homeStore: this.homeStore })
+          Text($r('app.string.task_list'))
+            .fontSize(20)
+            .fontColor($r('app.color.text_primary'))
+            .fontWeight(FontWeight.Bold)
+            .width('100%')
+            .padding({ top: 24, bottom: 8, left: 16 })
 
-      // 底部添加按钮
-      Row() {
-        Button() {
-          Row() {
-            Image($r('app.media.ic_home_add'))
-              .width(20)
-              .height(20)
-              .fillColor('#FFFFFF')
-            Text($r('app.string.add_task'))
-              .fontColor('#FFFFFF')
-              .fontSize(14)
-              .margin({ left: 8 })
-          }
+          TaskList({ homeStore: this.homeStore })
         }
-        .type(ButtonType.Capsule)
-        .backgroundColor($r('app.color.text_font_color'))
-        .width('60%')
-        .height(40)
-        .onClick(() => {
-          router.pushUrl({ url: 'pages/AddTaskPage' });
-        })
       }
       .width('100%')
-      .justifyContent(FlexAlign.Center)
-      .padding({ top: 8, bottom: 8 })
+      .height('100%')
+      .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring)
+
+      Button({ type: ButtonType.Circle, stateEffect: false }) {
+        Image($r('app.media.ic_home_add'))
+          .borderRadius('50%')
+      }
+      .width(48)
+      .height(48)
+      .position({ x: '44%', y: '90%' })
+      .zIndex(1)
+      .onClick(() => {
+        router.pushUrl({ url: 'pages/AddTaskPage' });
+      })
     }
     .width('100%')
     .height('100%')

@@ -70,14 +70,11 @@ export function recalculateDayInfo(
 }
 
 /**
- * 停用任务时，从当日任务列表中移除未完成的任务
+ * 停用任务时，从当日任务列表中移除该任务
  */
 export function removeInactiveTaskFromDay(
   dayTasks: DayTaskInfo[],
   taskId: number
 ): DayTaskInfo[] {
-  return dayTasks.filter(t => {
-    if (t.taskId !== taskId) return true;
-    return t.isDone;
-  });
+  return dayTasks.filter(t => t.taskId !== taskId);
 }

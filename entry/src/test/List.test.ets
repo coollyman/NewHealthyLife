@@ -5,6 +5,7 @@ import { getDateOffset, compareDate, getThreeWeekWindow } from '../main/ets/doma
 import { DayInfo } from '../main/ets/domain/models/DayInfo';
 import { DayTaskInfo } from '../main/ets/domain/models/DayTaskInfo';
 import { buildCardFormData } from '../main/ets/services/FormService';
+import { buildDayTaskRenderKey } from '../main/ets/components/home/TaskList';
 
 export default function testsuite() {
   localUnitTest();
@@ -42,6 +43,17 @@ export default function testsuite() {
       expect(formData.percentage).assertEqual(50);
       expect(formData.taskList.includes('喝水')).assertTrue();
       expect(formData.taskList.includes('每日微笑')).assertTrue();
+    });
+  });
+
+  describe('TaskListRenderKey', () => {
+    it('renderKey_changesWhenProgressOrDoneStateChanges', 0, () => {
+      const before = new DayTaskInfo(1, '20260709', 1, '1', '0', false);
+      const half = new DayTaskInfo(1, '20260709', 1, '1', '0.5', false);
+      const done = new DayTaskInfo(1, '20260709', 1, '1', '1', true);
+
+      expect(buildDayTaskRenderKey(before) === buildDayTaskRenderKey(half)).assertFalse();
+      expect(buildDayTaskRenderKey(half) === buildDayTaskRenderKey(done)).assertFalse();
     });
   });
 }

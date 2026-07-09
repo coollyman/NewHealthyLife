@@ -11,7 +11,8 @@ import { TaskInfo } from '../main/ets/domain/models/TaskInfo';
 import {
   ConsecutiveDaysState,
   onAllTasksCompleted,
-  onNewDay
+  onNewDay,
+  reconcileCurrentDayCompletion
 } from '../main/ets/domain/rules/ConsecutiveDaysRules';
 
 /**
@@ -125,6 +126,16 @@ export default function numericCheckinTest() {
       expect(r.targetTaskNum).assertEqual(2);
       expect(r.finTaskNum).assertEqual(1);
     });
+
+    it('removeInactive_removesCompletedTaskFromCurrentDay', 0, () => {
+      const tasks: DayTaskInfo[] = [
+        new DayTaskInfo(1, '20260101', 1, '1', '1', true),
+        new DayTaskInfo(2, '20260101', 3, '1', '1', true)
+      ];
+      const r = removeInactiveTaskFromDay(tasks, 1);
+      expect(r.length).assertEqual(1);
+      expect(r[0].taskId).assertEqual(3);
+    });
   });
 
   describe('NumericCheckin_StreakOnce', () => {
@@ -149,6 +160,23 @@ export default function numericCheckinTest() {
       const yesterday = new DayInfo('20260101', 2, 2);
       const r = onNewDay(yesterday, s);
       expect(r.currentConsecutiveDays).assertEqual(3);
+    });
+
+    it('streak_restoresCurrentDayStatusWhenTodayAlreadyComplete', 0, () => {
+      const s = new ConsecutiveDaysState(1, 1, false, null);
+      const today = new DayInfo('20260102', 2, 2);
+      const restored = reconcileCurrentDayCompletion(today, s);
+      expect(restored.currentConsecutiveDays).assertEqual(1);
+      expect(restored.currentDayStatus).assertTrue();
+
+      const afterAddingTask = new DayInfo('20260102', 3, 2);
+      const pending = reconcileCurrentDayCompletion(afterAddingTask, restored);
+      expect(pending.currentConsecutiveDays).assertEqual(1);
+      expect(pending.currentDayStatus).assertTrue();
+
+      const completeAgain = new DayInfo('20260102', 3, 3);
+      const countedAgain = onAllTasksCompleted(reconcileCurrentDayCompletion(completeAgain, pending));
+      expect(countedAgain.currentConsecutiveDays).assertEqual(1);
     });
   });
 }

@@ -1,9 +1,9 @@
 import { HomeStore } from '../../viewmodel/HomeStore';
-import { getThreeWeekWindow, isToday, getDayOfMonth, getDayOfWeek, compareDate, getToday } from '../../domain/utils/DateUtils';
+import { getDateOffset, getMondayOfWeek, parseDate } from '../../domain/utils/DateUtils';
 import { AppConstants } from '../../domain/constants/AppConstants';
 
 /**
- * 三周日历组件
+ * 周视图组件，结构对齐 HealthyLife 原版 WeekCalendarComponent。
  */
 @Component
 export struct WeekCalendar {
@@ -11,74 +11,108 @@ export struct WeekCalendar {
 
   build() {
     Column() {
-      // 星期标题
-      Row() {
-        ForEach(AppConstants.WEEK_SHORTHAND_LIST, (day: Resource) => {
-          Text(day)
-            .fontSize(12)
-            .fontColor($r('app.color.text_secondary'))
-            .layoutWeight(1)
-            .textAlign(TextAlign.Center)
-        })
-      }
-      .width('100%')
-      .padding({ top: 8, bottom: 8 })
-
-      // 21天日期 - 横向滚动
-      Scroll() {
+      Column() {
         Row() {
-          ForEach(getThreeWeekWindow(this.homeStore.selectedDate), (date: string) => {
-            this.dateCell(date)
+          this.arrowBuild($r('sys.symbol.chevron_left'), () => {
+            this.homeStore.selectDate(getDateOffset(this.homeStore.selectedDate, -7));
+          })
+
+          Text(this.getDisplayDate())
+            .fontSize(14)
+            .fontColor($r('app.color.text_primary'))
+            .fontWeight(FontWeight.Regular)
+            .padding({ left: 14, right: 14 })
+
+          this.arrowBuild($r('sys.symbol.chevron_right'), () => {
+            this.homeStore.selectDate(getDateOffset(this.homeStore.selectedDate, 7));
+          })
+        }
+
+        Row() {
+          ForEach(this.getCurrentWeekDates(), (date: string, index: number) => {
+            this.dayOfWeekBuilder(date, index)
           }, (date: string) => date)
         }
+        .width('100%')
+        .height('50%')
       }
-      .scrollable(ScrollDirection.Horizontal)
-      .scrollBar(BarState.Off)
       .width('100%')
-      .height(56)
+      .height('100%')
+      .justifyContent(FlexAlign.SpaceEvenly)
+      .borderRadius(26)
+      .backgroundColor($r('app.color.bg_card'))
     }
     .width('100%')
-    .backgroundColor($r('app.color.bg_card'))
-    .borderRadius(12)
-    .margin({ left: 12, right: 12, bottom: 8 })
-    .padding(8)
+    .height('42%')
+    .padding('3.3%')
   }
 
   @Builder
-  dateCell(date: string) {
+  dayOfWeekBuilder(date: string, index: number) {
     Column() {
-      Text(`${getDayOfMonth(date)}`)
-        .fontSize(16)
-        .fontColor(this.getDateColor(date))
-        .fontWeight(this.homeStore.selectedDate === date ? FontWeight.Bold : FontWeight.Normal)
+      Text(AppConstants.WEEK_SHORTHAND_LIST[index % 7])
+        .fontSize(12)
+        .fontColor(this.homeStore.selectedDate === date ? $r('app.color.text_font_color') : $r('app.color.text_secondary'))
+        .fontWeight(FontWeight.Regular)
 
-      // 选中标记
-      if (this.homeStore.selectedDate === date) {
-        Circle()
-          .width(4)
-          .height(4)
-          .fill($r('app.color.text_font_color'))
-          .margin({ top: 2 })
-      }
+      Divider()
+        .margin({ top: 2, bottom: 4 })
+        .width(12)
+        .color($r('app.color.text_font_color'))
+        .visibility(this.homeStore.selectedDate === date ? Visibility.Visible : Visibility.Hidden)
+
+      Image(this.getProgressImage(date))
+        .height(28)
+        .objectFit(ImageFit.Contain)
+        .margin({ top: '8%' })
     }
-    .width(40)
-    .height(48)
-    .justifyContent(FlexAlign.Center)
+    .width(`${100 / 7}%`)
+    .justifyContent(FlexAlign.SpaceBetween)
     .alignItems(HorizontalAlign.Center)
-    .borderRadius(8)
-    .backgroundColor(this.homeStore.selectedDate === date ? $r('app.color.user_level_bg_color') : Color.Transparent)
     .onClick(() => {
+      if (this.homeStore.selectedDate === date) {
+        return;
+      }
       this.homeStore.selectDate(date);
     })
   }
 
-  private getDateColor(date: string): ResourceColor {
-    if (isToday(date)) {
-      return $r('app.color.text_font_color');
+  @Builder
+  arrowBuild(icon: Resource, click: () => void) {
+    SymbolGlyph(icon)
+      .fontSize(18)
+      .fontColor([$r('app.color.text_secondary')])
+      .onClick(() => {
+        click();
+      })
+  }
+
+  private getCurrentWeekDates(): string[] {
+    const monday = getMondayOfWeek(this.homeStore.selectedDate);
+    const dates: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      dates.push(getDateOffset(monday, i));
     }
-    if (compareDate(date, getToday()) > 0) {
-      return $r('app.color.text_hint'); // 未来日期
+    return dates;
+  }
+
+  private getDisplayDate(): string {
+    const date = parseDate(this.homeStore.selectedDate);
+    const weekDays: string[] = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日${weekDays[date.getDay()]}`;
+  }
+
+  private getProgressImage(date: string): Resource {
+    if (date !== this.homeStore.selectedDate) {
+      return $r('app.media.ic_home_undone');
     }
-    return $r('app.color.text_primary');
+    const dayInfo = this.homeStore.dayInfo;
+    if (dayInfo.finTaskNum === 0 || dayInfo.targetTaskNum === 0) {
+      return $r('app.media.ic_home_undone');
+    }
+    if (dayInfo.finTaskNum < dayInfo.targetTaskNum) {
+      return $r('app.media.ic_home_half_done');
+    }
+    return $r('app.media.ic_home_all_done');
   }
 }

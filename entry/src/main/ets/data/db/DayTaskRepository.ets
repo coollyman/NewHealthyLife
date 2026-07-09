@@ -98,14 +98,13 @@ export class DayTaskRepository {
   }
 
   /**
-   * 删除指定日期的未完成任务
+   * 删除指定日期的任务快照
    */
-  async deleteUnfinishedTask(date: string, taskId: number): Promise<void> {
+  async deleteDayTask(date: string, taskId: number): Promise<void> {
     const store = this.dbHelper.getStore();
     const predicates = new relationalStore.RdbPredicates(DbSchema.TABLE_DAY_TASK);
     predicates.equalTo('date', date);
     predicates.equalTo('taskId', taskId);
-    predicates.equalTo('isDone', 0);
     await store.delete(predicates);
   }
 
