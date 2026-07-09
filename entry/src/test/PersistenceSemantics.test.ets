@@ -3,7 +3,7 @@ import { TaskInfo } from '../main/ets/domain/models/TaskInfo';
 import { DayInfo } from '../main/ets/domain/models/DayInfo';
 import { DayTaskInfo } from '../main/ets/domain/models/DayTaskInfo';
 import { ConsecutiveDaysState } from '../main/ets/domain/rules/ConsecutiveDaysRules';
-import { createDefaultTaskInfoList } from '../main/ets/domain/constants/TaskCatalog';
+import { createDefaultTaskInfoList, TASK_CATALOG } from '../main/ets/domain/constants/TaskCatalog';
 import { getToday, getDateOffset } from '../main/ets/domain/utils/DateUtils';
 import { HomeStore, HomeStoreDeps } from '../main/ets/viewmodel/HomeStore';
 import {
@@ -113,14 +113,14 @@ export default function persistenceSemanticsTest() {
 
       // 第一次 init
       await store.initAppData();
-      expect(store.allTasks.length).assertEqual(6);
+      expect(store.allTasks.length).assertEqual(TASK_CATALOG.length);
       const firstIds = store.allTasks.map(t => t.taskId).sort();
 
       // 第二次 init — 不应重复插入任务
       await store.initAppData();
-      expect(store.allTasks.length).assertEqual(6);
+      expect(store.allTasks.length).assertEqual(TASK_CATALOG.length);
       const secondIds = store.allTasks.map(t => t.taskId).sort();
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < TASK_CATALOG.length; i++) {
         expect(secondIds[i]).assertEqual(firstIds[i]);
       }
     });
