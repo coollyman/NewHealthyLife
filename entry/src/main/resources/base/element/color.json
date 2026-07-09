@@ -1,0 +1,20 @@
+{
+  "color": [
+    { "name": "start_window_background", "value": "#FFFFFF" },
+    { "name": "user_level_font_color", "value": "#c99411" },
+    { "name": "user_level_bg_color", "value": "#d4e6f1" },
+    { "name": "task_clock_bg_color", "value": "#66FFFFFF" },
+    { "name": "button_red", "value": "#E84026" },
+    { "name": "ach_bg_color", "value": "#000000" },
+    { "name": "mine_font_color", "value": "#E5000000" },
+    { "name": "text_font_color", "value": "#0A59F7" },
+    { "name": "bg_page", "value": "#F1F3F5" },
+    { "name": "bg_card", "value": "#FFFFFF" },
+    { "name": "text_primary", "value": "#E5000000" },
+    { "name": "text_secondary", "value": "#99000000" },
+    { "name": "text_hint", "value": "#66000000" },
+    { "name": "divider", "value": "#33000000" },
+    { "name": "home_bg", "value": "#F1F3F5" },
+    { "name": "title_color", "value": "#E5000000" }
+  ]
+}

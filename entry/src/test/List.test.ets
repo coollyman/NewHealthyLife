@@ -1,0 +1,47 @@
+import { describe, it, expect } from '@ohos/hypium';
+import localUnitTest from './LocalUnit.test';
+import numericCheckinTest from './NumericCheckin.test';
+import { getDateOffset, compareDate, getThreeWeekWindow } from '../main/ets/domain/utils/DateUtils';
+import { DayInfo } from '../main/ets/domain/models/DayInfo';
+import { DayTaskInfo } from '../main/ets/domain/models/DayTaskInfo';
+import { buildCardFormData } from '../main/ets/services/FormService';
+
+export default function testsuite() {
+  localUnitTest();
+  numericCheckinTest();
+
+  describe('HistoryAndPreviewDates', () => {
+    it('dateOffset_supportsHistoryAndFutureSelection', 0, () => {
+      const today = '20260709';
+      const past = getDateOffset(today, -1);
+      const future = getDateOffset(today, 1);
+      expect(compareDate(past, today) < 0).assertTrue();
+      expect(compareDate(future, today) > 0).assertTrue();
+    });
+
+    it('threeWeekWindow_keepsSelectedDateVisible', 0, () => {
+      const selectedDate = '20260709';
+      const dates = getThreeWeekWindow(selectedDate);
+      expect(dates.includes(selectedDate)).assertTrue();
+      expect(dates.length).assertEqual(21);
+    });
+  });
+
+  describe('FormCardDataMapping', () => {
+    it('buildCardFormData_mapsProgressCountsAndPercentage', 0, () => {
+      const dayInfo = new DayInfo('20260709', 2, 1);
+      const formData = buildCardFormData(dayInfo, [
+        new DayTaskInfo(1, '20260709', 1, '1', '1', true),
+        new DayTaskInfo(2, '20260709', 3, '1', '', false)
+      ]);
+
+      expect(formData.taskCount).assertEqual(2);
+      expect(formData.finishedCount).assertEqual(1);
+      expect(formData.targetTaskNum).assertEqual(2);
+      expect(formData.finTaskNum).assertEqual(1);
+      expect(formData.percentage).assertEqual(50);
+      expect(formData.taskList.includes('喝水')).assertTrue();
+      expect(formData.taskList.includes('每日微笑')).assertTrue();
+    });
+  });
+}
