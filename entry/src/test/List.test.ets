@@ -1,6 +1,9 @@
 import { describe, it, expect } from '@ohos/hypium';
 import localUnitTest from './LocalUnit.test';
 import numericCheckinTest from './NumericCheckin.test';
+import regressionBugScanTest from './RegressionBugScan.test';
+import homeStoreFlowTest from './HomeStoreFlow.test';
+import persistenceSemanticsTest from './PersistenceSemantics.test';
 import { getDateOffset, compareDate, getThreeWeekWindow } from '../main/ets/domain/utils/DateUtils';
 import { DayInfo } from '../main/ets/domain/models/DayInfo';
 import { DayTaskInfo } from '../main/ets/domain/models/DayTaskInfo';
@@ -10,6 +13,9 @@ import { buildDayTaskRenderKey } from '../main/ets/components/home/TaskList';
 export default function testsuite() {
   localUnitTest();
   numericCheckinTest();
+  regressionBugScanTest();
+  homeStoreFlowTest();
+  persistenceSemanticsTest();
 
   describe('HistoryAndPreviewDates', () => {
     it('dateOffset_supportsHistoryAndFutureSelection', 0, () => {

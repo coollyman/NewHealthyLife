@@ -2,11 +2,12 @@ import { relationalStore } from '@kit.ArkData';
 import { DatabaseHelper } from './DatabaseHelper';
 import { DbSchema } from './DbSchema';
 import { DayTaskInfo } from '../../domain/models/DayTaskInfo';
+import { IDayTaskRepository } from '../../domain/ports/RepositoryPorts';
 
 /**
  * DayTaskInfo 仓储 - 每日任务快照
  */
-export class DayTaskRepository {
+export class DayTaskRepository implements IDayTaskRepository {
   private dbHelper: DatabaseHelper = DatabaseHelper.getInstance();
 
   /**
@@ -106,6 +107,26 @@ export class DayTaskRepository {
     predicates.equalTo('date', date);
     predicates.equalTo('taskId', taskId);
     await store.delete(predicates);
+  }
+
+  /**
+   * 获取日期范围内的所有任务快照
+   */
+  async getDayTasksByDateRange(startDate: string, endDate: string): Promise<DayTaskInfo[]> {
+    const store = this.dbHelper.getStore();
+    const predicates = new relationalStore.RdbPredicates(DbSchema.TABLE_DAY_TASK);
+    predicates.greaterThanOrEqualTo('date', startDate);
+    predicates.lessThanOrEqualTo('date', endDate);
+    predicates.orderByAsc('date');
+    predicates.orderByAsc('taskId');
+    const resultSet = await store.query(predicates);
+
+    const tasks: DayTaskInfo[] = [];
+    while (resultSet.goToNextRow()) {
+      tasks.push(this.mapRow(resultSet));
+    }
+    resultSet.close();
+    return tasks;
   }
 
   private mapRow(resultSet: relationalStore.ResultSet): DayTaskInfo {

@@ -42,6 +42,11 @@ export function isAllTasksCompleted(dayInfo: DayInfo): boolean {
  */
 export function onAllTasksCompleted(state: ConsecutiveDaysState): ConsecutiveDaysState {
   if (state.currentDayStatus) {
+    // 同一天重复调用：幂等不增天数，同时清掉 newlyUnlockedAchievement，
+    // 保证"只消费一次"语义——调用方第一次没 pop 就再次调用也不会重复触发。
+    if (state.newlyUnlockedAchievement !== null) {
+      return new ConsecutiveDaysState(state.maxConsecutiveDays, state.currentConsecutiveDays, true, null);
+    }
     return state;
   }
 

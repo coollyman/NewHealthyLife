@@ -3,7 +3,8 @@
 ## 项目概况
 - 从零重实现 HarmonyOS「健康生活」习惯打卡应用
 - 参考华为官方 Codelab，但全新干净实现
-- 6 个预设任务：早起、喝水、吃苹果、每日微笑、刷牙、早睡
+- 7 个预设任务：早起、喝水、吃苹果、每日微笑、刷牙、早睡、跑步一公里
+- 微笑/刷牙为可设次数任务(1/2/3次)，跑步为数值任务(1/2/3/5公里)，跑步支持周频率提醒
 
 ## 架构分层
 - `domain/`: 模型、常量、规则、工具（纯逻辑，不依赖运行时）
@@ -14,10 +15,14 @@
 - `form/`: 服务卡片
 
 ## 构建环境
-- DevEco Studio: D:/software/DevEco Studio
-- SDK: D:/software/DevEco Studio/sdk (API 24, HarmonyOS 6.1.1)
-- 构建命令: `DEVECO_SDK_HOME="D:/software/DevEco Studio/sdk" "/d/software/DevEco Studio/tools/hvigor/bin/hvigorw.bat" --mode module -p product=default -p module=entry@default assembleHap`
-- local.properties: sdk.dir=D\:/software/DevEco Studio/sdk
+- DevEco Studio 实际路径: `C:/Program Files/Huawei/DevEco Studio`（非 D 盘）
+- SDK: `C:/Program Files/Huawei/DevEco Studio/sdk` (API 24, HarmonyOS 6.1.1)
+- 构建命令（注意 NODE_OPTIONS 要清空）:
+  `cd /c/code/NewHealthyLife && NODE_OPTIONS="" node "C:/Program Files/Huawei/DevEco Studio/tools/hvigor/bin/hvigorw.js" --mode module -p product=default -p module=entry@default assembleHap`
+- 构建还需设置 PATH 包含 SDK 的 previewer/common/bin 和 hms/toolchains/lib（restool 依赖 libimage_transcoder_shared.dll）
+  `export PATH="/c/Program Files/Huawei/DevEco Studio/sdk/default/openharmony/previewer/common/bin:/c/Program Files/Huawei/DevEco Studio/sdk/default/hms/toolchains/lib:$PATH"`
+- devecocli 也可用，但 hvigor sync 时常报配置错；直接调 hvigorw.js 更稳
+- local.properties: sdk.dir=D\:/software/DevEco Studio/sdk（旧值，可能需更新）
 
 ## ArkTS 关键规则（踩过的坑）
 - catch 不能有类型标注: `catch (e)` 可以，`catch (e: BusinessError)` 不行
@@ -27,3 +32,4 @@
 - 不支持解构声明: `const [a, b] = arr` 不行
 - parseFloat 返回 number 但中间变量需显式标注
 - UIAbility 的生命周期方法不能是 async，需要用 .then() 链
+- Row 的 alignItems 接受 VerticalAlign，Column 的 alignItems 接受 HorizontalAlign（不能混用）

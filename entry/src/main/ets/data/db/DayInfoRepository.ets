@@ -2,11 +2,12 @@ import { relationalStore } from '@kit.ArkData';
 import { DatabaseHelper } from './DatabaseHelper';
 import { DbSchema } from './DbSchema';
 import { DayInfo } from '../../domain/models/DayInfo';
+import { IDayInfoRepository } from '../../domain/ports/RepositoryPorts';
 
 /**
  * DayInfo 仓储 - 每日聚合进度
  */
-export class DayInfoRepository {
+export class DayInfoRepository implements IDayInfoRepository {
   private dbHelper: DatabaseHelper = DatabaseHelper.getInstance();
 
   /**
@@ -51,5 +52,28 @@ export class DayInfoRepository {
     }
     resultSet.close();
     return dayInfo;
+  }
+
+  /**
+   * 获取日期范围内的 DayInfo 列表
+   */
+  async getDayInfoList(startDate: string, endDate: string): Promise<DayInfo[]> {
+    const store = this.dbHelper.getStore();
+    const predicates = new relationalStore.RdbPredicates(DbSchema.TABLE_DAY);
+    predicates.greaterThanOrEqualTo('date', startDate);
+    predicates.lessThanOrEqualTo('date', endDate);
+    predicates.orderByAsc('date');
+    const resultSet = await store.query(predicates);
+
+    const result: DayInfo[] = [];
+    while (resultSet.goToNextRow()) {
+      result.push(new DayInfo(
+        resultSet.getString(resultSet.getColumnIndex('date')),
+        resultSet.getLong(resultSet.getColumnIndex('targetTaskNum')),
+        resultSet.getLong(resultSet.getColumnIndex('finTaskNum'))
+      ));
+    }
+    resultSet.close();
+    return result;
   }
 }

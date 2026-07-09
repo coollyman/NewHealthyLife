@@ -1,11 +1,12 @@
 import { preferences } from '@kit.ArkData';
 import { AppConstants } from '../../domain/constants/AppConstants';
 import { ConsecutiveDaysState, createInitialConsecutiveState } from '../../domain/rules/ConsecutiveDaysRules';
+import { IPrefRepository } from '../../domain/ports/RepositoryPorts';
 
 /**
  * Preferences 仓储 - 存储连续天数和成就状态
  */
-export class PreferencesRepository {
+export class PreferencesRepository implements IPrefRepository {
   private static instance: PreferencesRepository | null = null;
   private pref: preferences.Preferences | null = null;
 

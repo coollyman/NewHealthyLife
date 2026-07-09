@@ -16,6 +16,7 @@ export class DayInfo {
     if (this.targetTaskNum === 0) {
       return 0;
     }
-    return Math.ceil(this.finTaskNum / this.targetTaskNum * 100);
+    const percentage = Math.ceil(this.finTaskNum / this.targetTaskNum * 100);
+    return Math.max(0, Math.min(100, percentage));
   }
 }

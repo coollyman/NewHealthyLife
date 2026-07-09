@@ -30,7 +30,8 @@ import {
   getThreeWeekWindow
 } from '../main/ets/domain/utils/DateUtils';
 import { TASK_CATALOG, TaskType, PickerType, createDefaultTaskInfoList } from '../main/ets/domain/constants/TaskCatalog';
-import { buildReminderIntent } from '../main/ets/services/ReminderService';
+import { getAchievementBadgeIcon, isValidAchievementThreshold } from '../main/ets/domain/constants/AchievementBadge';
+import { buildReminderIntent, parseAlertFrequency } from '../main/ets/services/ReminderService';
 import { isHomeStoreDataReady } from '../main/ets/viewmodel/HomeStore';
 
 export default function localUnitTest() {
@@ -85,8 +86,8 @@ export default function localUnitTest() {
   });
 
   describe('TaskCatalog', () => {
-    it('catalog_hasExactlySixStableTaskIds', 0, () => {
-      expect(TASK_CATALOG.length).assertEqual(6);
+    it('catalog_hasExactlySevenStableTaskIds', 0, () => {
+      expect(TASK_CATALOG.length).assertEqual(7);
       for (let i = 0; i < TASK_CATALOG.length; i++) {
         expect(TASK_CATALOG[i].taskId).assertEqual(i);
       }
@@ -94,7 +95,7 @@ export default function localUnitTest() {
 
     it('catalog_numericTasksHavePositiveStepAndOptions', 0, () => {
       const numericTasks = TASK_CATALOG.filter(item => item.type === TaskType.VALUE);
-      expect(numericTasks.length).assertEqual(2);
+      expect(numericTasks.length).assertEqual(5);
       for (const item of numericTasks) {
         expect(parseFloat(item.step) > 0).assertTrue();
         expect(item.pickerType).assertEqual(PickerType.TEXT);
@@ -134,8 +135,9 @@ export default function localUnitTest() {
       expect(canCheckin(t)).assertTrue();
     });
 
-    // ONCE / TIME 任务（taskId 3 = smile, taskId 0 = getup）
+    // ONCE / TIME 任务（taskId 0 = getup TIME）
     it('checkinTask_onceTaskCompletesImmediately', 0, () => {
+      // smile is now VALUE with step=1, but target=1 → single checkin completes
       const t = new DayTaskInfo(1, '20260101', 3, '1', '', false);
       const r = checkinTask(t);
       expect(r.isDone).assertTrue();
@@ -179,6 +181,44 @@ export default function localUnitTest() {
       expect(r.finValue).assertEqual('08:00');
     });
 
+    // 微笑/刷牙 target=3 需 3 次完成
+    it('checkinTask_smileTarget3_requiresThreeCheckins', 0, () => {
+      let t = new DayTaskInfo(1, '20260101', 3, '3', '0', false);
+      let r = checkinTask(t);
+      expect(r.isDone).assertFalse();
+      expect(r.finValue).assertEqual('1');
+      r = checkinTask(r);
+      expect(r.isDone).assertFalse();
+      expect(r.finValue).assertEqual('2');
+      r = checkinTask(r);
+      expect(r.isDone).assertTrue();
+      expect(r.finValue).assertEqual('3');
+    });
+
+    it('checkinTask_brushTarget3_requiresThreeCheckins', 0, () => {
+      let t = new DayTaskInfo(1, '20260101', 4, '3', '0', false);
+      let r = checkinTask(t);
+      expect(r.isDone).assertFalse();
+      expect(r.finValue).assertEqual('1');
+      r = checkinTask(r);
+      expect(r.isDone).assertFalse();
+      expect(r.finValue).assertEqual('2');
+      r = checkinTask(r);
+      expect(r.isDone).assertTrue();
+      expect(r.finValue).assertEqual('3');
+    });
+
+    // 跑步 target=2 需 2 次完成
+    it('checkinTask_runTarget2_requiresTwoCheckins', 0, () => {
+      let t = new DayTaskInfo(1, '20260101', 6, '2', '0', false);
+      let r = checkinTask(t);
+      expect(r.isDone).assertFalse();
+      expect(r.finValue).assertEqual('1');
+      r = checkinTask(r);
+      expect(r.isDone).assertTrue();
+      expect(r.finValue).assertEqual('2');
+    });
+
     it('countFinishedTasks_countsOnlyDone', 0, () => {
       const list: DayTaskInfo[] = [
         new DayTaskInfo(1, '20260101', 0, '', '', true),
@@ -206,6 +246,61 @@ export default function localUnitTest() {
     it('buildReminderIntent_rejectsInvalidTime', 0, () => {
       expect(buildReminderIntent(new TaskInfo(0, true, '25:00')).shouldSchedule).assertFalse();
       expect(buildReminderIntent(new TaskInfo(5, true, 'bad')).shouldSchedule).assertFalse();
+    });
+
+    // 跑步提醒测试 (taskId=6)
+    it('buildReminderIntent_runTaskSchedulesWithAlertStartAndFrequency', 0, () => {
+      // 跑步任务：isAlert=true, alertStartTime='07:00', alertFrequency='1,3,5'
+      const task = new TaskInfo(6, true, '1', true, '07:00', '', '1,3,5', -1);
+      const intent = buildReminderIntent(task);
+      expect(intent.shouldSchedule).assertTrue();
+      expect(intent.hour).assertEqual(7);
+      expect(intent.minute).assertEqual(0);
+      expect(intent.daysOfWeek.length).assertEqual(3);
+      expect(intent.daysOfWeek.includes(1)).assertTrue();
+      expect(intent.daysOfWeek.includes(3)).assertTrue();
+      expect(intent.daysOfWeek.includes(5)).assertTrue();
+    });
+
+    it('buildReminderIntent_runTaskSkipsWhenAlertOff', 0, () => {
+      const task = new TaskInfo(6, true, '1', false, '07:00', '', '1,3,5', -1);
+      expect(buildReminderIntent(task).shouldSchedule).assertFalse();
+    });
+
+    it('buildReminderIntent_runTaskSkipsWhenClosed', 0, () => {
+      const task = new TaskInfo(6, false, '1', true, '07:00', '', '1,3,5', -1);
+      expect(buildReminderIntent(task).shouldSchedule).assertFalse();
+    });
+
+    it('buildReminderIntent_runTaskSkipsWhenInvalidTime', 0, () => {
+      const task = new TaskInfo(6, true, '1', true, '25:00', '', '1,3,5', -1);
+      expect(buildReminderIntent(task).shouldSchedule).assertFalse();
+    });
+
+    it('buildReminderIntent_runTaskSkipsWhenEmptyFrequency', 0, () => {
+      const task = new TaskInfo(6, true, '1', true, '07:00', '', '', -1);
+      expect(buildReminderIntent(task).shouldSchedule).assertFalse();
+    });
+
+    it('parseAlertFrequency_parsesValidDays', 0, () => {
+      const result = parseAlertFrequency('1,3,5');
+      expect(result.length).assertEqual(3);
+      expect(result.includes(1)).assertTrue();
+      expect(result.includes(3)).assertTrue();
+      expect(result.includes(5)).assertTrue();
+    });
+
+    it('parseAlertFrequency_emptyReturnsEmptyArray', 0, () => {
+      expect(parseAlertFrequency('').length).assertEqual(0);
+      expect(parseAlertFrequency('   ').length).assertEqual(0);
+    });
+
+    it('parseAlertFrequency_deduplicatesAndFiltersInvalid', 0, () => {
+      const result = parseAlertFrequency('1,1,3,8,0,5');
+      expect(result.length).assertEqual(3);
+      expect(result.includes(1)).assertTrue();
+      expect(result.includes(3)).assertTrue();
+      expect(result.includes(5)).assertTrue();
     });
   });
 
@@ -378,6 +473,111 @@ export default function localUnitTest() {
     it('isAchievementUnlocked_followsMaxStreak', 0, () => {
       expect(isAchievementUnlocked(7, 7)).assertTrue();
       expect(isAchievementUnlocked(6, 7)).assertFalse();
+    });
+  });
+
+  describe('AchievementBadge', () => {
+    const VALID_THRESHOLDS: number[] = [3, 7, 30, 50, 73, 99];
+
+    it('isValidAchievementThreshold_trueForAllDefinedThresholds', 0, () => {
+      for (const t of VALID_THRESHOLDS) {
+        expect(isValidAchievementThreshold(t)).assertTrue();
+      }
+    });
+
+    it('isValidAchievementThreshold_falseForInvalidThresholds', 0, () => {
+      const invalids: number[] = [0, 1, 2, 4, 5, 6, 8, 10, 25, 31, 49, 51, 72, 74, 98, 100, -1, 999];
+      for (const t of invalids) {
+        expect(isValidAchievementThreshold(t)).assertFalse();
+      }
+    });
+
+    it('getAchievementBadgeIcon_returnsNonNullForAllValidThresholds', 0, () => {
+      for (const t of VALID_THRESHOLDS) {
+        const onIcon = getAchievementBadgeIcon(t, true);
+        expect(onIcon !== null).assertTrue();
+        const offIcon = getAchievementBadgeIcon(t, false);
+        expect(offIcon !== null).assertTrue();
+      }
+    });
+
+    it('getAchievementBadgeIcon_returnsNullForInvalidThreshold', 0, () => {
+      const invalids: number[] = [0, 1, 4, 10, 100, -1];
+      for (const t of invalids) {
+        expect(getAchievementBadgeIcon(t, true)).assertNull();
+        expect(getAchievementBadgeIcon(t, false)).assertNull();
+      }
+    });
+
+    it('achievementUnlockMatrix_matchesMaxConsecutiveDays', 0, () => {
+      const cases: Array<[number, number[]]> = [
+        [0, []],
+        [2, []],
+        [3, [3]],
+        [6, [3]],
+        [7, [3, 7]],
+        [29, [3, 7]],
+        [30, [3, 7, 30]],
+        [49, [3, 7, 30]],
+        [50, [3, 7, 30, 50]],
+        [72, [3, 7, 30, 50]],
+        [73, [3, 7, 30, 50, 73]],
+        [98, [3, 7, 30, 50, 73]],
+        [99, [3, 7, 30, 50, 73, 99]],
+        [120, [3, 7, 30, 50, 73, 99]]
+      ];
+
+      for (const item of cases) {
+        const maxDays = item[0];
+        const unlockedThresholds = item[1];
+        for (const threshold of VALID_THRESHOLDS) {
+          expect(isAchievementUnlocked(maxDays, threshold)).assertEqual(unlockedThresholds.includes(threshold));
+        }
+      }
+    });
+
+    it('achievementBadgeIcons_existForEveryRenderedUnlockState', 0, () => {
+      for (const maxDays of [0, 3, 7, 30, 50, 73, 99]) {
+        for (const threshold of VALID_THRESHOLDS) {
+          const unlocked = isAchievementUnlocked(maxDays, threshold);
+          const icon = getAchievementBadgeIcon(threshold, unlocked);
+          expect(icon !== null).assertTrue();
+        }
+      }
+    });
+  });
+
+  describe('NewlyUnlockedAchievement consumption', () => {
+    it('newlyUnlockedAchievement_clearedAfterPop', 0, () => {
+      // 模拟 HomeStore.popNewlyUnlockedAchievement() 的消费语义：
+      // 读取后置 null，第二次读取返回 null
+      const state = new ConsecutiveDaysState(3, 3, true, 3);
+      expect(state.newlyUnlockedAchievement).assertEqual(3);
+      // 第一次 pop
+      const first = state.newlyUnlockedAchievement;
+      state.newlyUnlockedAchievement = null;
+      expect(first).assertEqual(3);
+      // 第二次 pop 应为 null
+      const second = state.newlyUnlockedAchievement;
+      state.newlyUnlockedAchievement = null;
+      expect(second).assertNull();
+    });
+
+    it('newlyUnlockedAchievement_nullWhenNotAtThreshold', 0, () => {
+      const state = new ConsecutiveDaysState(4, 4, true, null);
+      const first = state.newlyUnlockedAchievement;
+      state.newlyUnlockedAchievement = null;
+      expect(first).assertNull();
+    });
+
+    it('onAllTasksCompleted_doesNotReUnlockSameDay', 0, () => {
+      // 同一天重复完成不会重复触发 newlyUnlockedAchievement
+      const s = new ConsecutiveDaysState(2, 2, false, null);
+      const r1 = onAllTasksCompleted(s);
+      expect(r1.newlyUnlockedAchievement).assertEqual(3);
+      // currentDayStatus 已为 true，再次调用不变
+      const r2 = onAllTasksCompleted(r1);
+      expect(r2.newlyUnlockedAchievement).assertNull();
     });
   });
 

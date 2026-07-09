@@ -26,6 +26,16 @@ export struct WeekCalendar {
           this.arrowBuild($r('sys.symbol.chevron_right'), () => {
             this.homeStore.selectDate(getDateOffset(this.homeStore.selectedDate, 7));
           })
+
+          // 月视图入口图标
+          Image($r('app.media.ic_month_view'))
+            .width(20)
+            .height(20)
+            .margin({ left: 8 })
+            .fillColor($r('app.color.text_secondary'))
+            .onClick(() => {
+              this.homeStore.openMonthView();
+            })
         }
 
         Row() {
@@ -103,16 +113,13 @@ export struct WeekCalendar {
   }
 
   private getProgressImage(date: string): Resource {
-    if (date !== this.homeStore.selectedDate) {
-      return $r('app.media.ic_home_undone');
+    const status = this.homeStore.getCalendarDayStatus(date);
+    if (status === 3) {
+      return $r('app.media.ic_home_all_done');
     }
-    const dayInfo = this.homeStore.dayInfo;
-    if (dayInfo.finTaskNum === 0 || dayInfo.targetTaskNum === 0) {
-      return $r('app.media.ic_home_undone');
-    }
-    if (dayInfo.finTaskNum < dayInfo.targetTaskNum) {
+    if (status === 2) {
       return $r('app.media.ic_home_half_done');
     }
-    return $r('app.media.ic_home_all_done');
+    return $r('app.media.ic_home_undone');
   }
 }

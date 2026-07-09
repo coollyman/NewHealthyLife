@@ -69,17 +69,17 @@ export default function numericCheckinTest() {
   });
 
   describe('NumericCheckin_Once', () => {
-    // taskId=3 smile: ONCE, target=1
+    // taskId=3 smile: now VALUE with step=1, target=1
     it('once_completesInOneCheckin', 0, () => {
-      const t = new DayTaskInfo(1, '20260101', 3, '1', '', false);
+      const t = new DayTaskInfo(1, '20260101', 3, '1', '0', false);
       const r = checkinTask(t);
       expect(r.isDone).assertTrue();
       expect(r.finValue).assertEqual('1');
     });
 
-    // taskId=4 brush: ONCE
+    // taskId=4 brush: now VALUE with step=1, target=1
     it('once_brushCompletesInOneCheckin', 0, () => {
-      const t = new DayTaskInfo(1, '20260101', 4, '1', '', false);
+      const t = new DayTaskInfo(1, '20260101', 4, '1', '0', false);
       const r = checkinTask(t);
       expect(r.isDone).assertTrue();
     });
@@ -127,14 +127,14 @@ export default function numericCheckinTest() {
       expect(r.finTaskNum).assertEqual(1);
     });
 
-    it('removeInactive_removesCompletedTaskFromCurrentDay', 0, () => {
+    it('removeInactive_keepsCompletedTaskHistory', 0, () => {
       const tasks: DayTaskInfo[] = [
         new DayTaskInfo(1, '20260101', 1, '1', '1', true),
         new DayTaskInfo(2, '20260101', 3, '1', '1', true)
       ];
       const r = removeInactiveTaskFromDay(tasks, 1);
-      expect(r.length).assertEqual(1);
-      expect(r[0].taskId).assertEqual(3);
+      expect(r.length).assertEqual(2);
+      expect(r.some(task => task.taskId === 1 && task.isDone)).assertTrue();
     });
   });
 

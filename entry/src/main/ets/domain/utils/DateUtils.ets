@@ -111,3 +111,50 @@ export function diffDays(dateStr1: string, dateStr2: string): number {
   const d2 = parseDate(dateStr2);
   return Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
 }
+
+/**
+ * 获取指定日期所在月份的天数
+ */
+export function getDaysInMonth(dateStr: string): number {
+  const date = parseDate(dateStr);
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+}
+
+/**
+ * 获取指定日期所在月份的第一天是星期几（0=周日, 1=周一, ... 6=周六）
+ */
+export function getFirstDayOfMonth(dateStr: string): number {
+  const date = parseDate(dateStr);
+  return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+}
+
+/**
+ * 获取指定日期的年月部分 yyyyMM
+ */
+export function getYearMonth(dateStr: string): string {
+  return dateStr.substring(0, 6);
+}
+
+/**
+ * 获取指定日期所在月份的第 1 天的 yyyyMMdd
+ */
+export function getFirstDateOfMonth(dateStr: string): string {
+  return dateStr.substring(0, 6) + '01';
+}
+
+/**
+ * 构建指定日期所在月份的日历网格日期列表
+ * 返回的列表以周一为起始，包含前一个月的尾部和下一个月的开头
+ * 始终返回 42 天（6 行 × 7 列）
+ */
+export function getMonthGrid(dateStr: string): string[] {
+  const firstDay = getFirstDayOfMonth(dateStr);
+  // 转换为以周一为起始的偏移：周一=0, 周二=1, ... 周日=6
+  const mondayOffset = firstDay === 0 ? 6 : firstDay - 1;
+  const gridStart = getDateOffset(getFirstDateOfMonth(dateStr), -mondayOffset);
+  const result: string[] = [];
+  for (let i = 0; i < 42; i++) {
+    result.push(getDateOffset(gridStart, i));
+  }
+  return result;
+}

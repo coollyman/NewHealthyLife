@@ -1,6 +1,7 @@
 import { HomeStore } from '../viewmodel/HomeStore';
 import { TaskList } from '../components/home/TaskList';
 import { ProgressHeader } from '../components/home/ProgressHeader';
+import { MonthView } from '../components/home/MonthView';
 import { router } from '@kit.ArkUI';
 
 /**
@@ -52,6 +53,17 @@ export struct HomePage {
       .onClick(() => {
         router.pushUrl({ url: 'pages/AddTaskPage' });
       })
+
+      // 月视图覆盖层
+      if (this.homeStore.isMonthView) {
+        Column() {
+          MonthView({ homeStore: this.homeStore })
+        }
+        .width('100%')
+        .height('100%')
+        .backgroundColor($r('app.color.bg_card'))
+        .zIndex(2)
+      }
     }
     .width('100%')
     .height('100%')

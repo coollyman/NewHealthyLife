@@ -3,11 +3,12 @@ import { DatabaseHelper } from './DatabaseHelper';
 import { DbSchema } from './DbSchema';
 import { TaskInfo } from '../../domain/models/TaskInfo';
 import { createDefaultTaskInfoList } from '../../domain/constants/TaskCatalog';
+import { ITaskRepository } from '../../domain/ports/RepositoryPorts';
 
 /**
  * TaskInfo 仓储 - 全局任务配置
  */
-export class TaskInfoRepository {
+export class TaskInfoRepository implements ITaskRepository {
   private dbHelper: DatabaseHelper = DatabaseHelper.getInstance();
 
   /**

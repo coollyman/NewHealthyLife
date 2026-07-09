@@ -3,7 +3,8 @@ import { DayTaskInfo } from '../../domain/models/DayTaskInfo';
 import { getTaskCatalogItem, TaskType } from '../../domain/constants/TaskCatalog';
 import { isToday } from '../../domain/utils/DateUtils';
 import { TaskClockDialog } from '../dialog/TaskClockDialog';
-import { promptAction, router } from '@kit.ArkUI';
+import { AchievementUnlockDialog } from '../dialog/AchievementUnlockDialog';
+import { router } from '@kit.ArkUI';
 
 export function buildDayTaskRenderKey(dayTask: DayTaskInfo): string {
   return `${dayTask.date}-${dayTask.taskId}-${dayTask.finValue}-${dayTask.isDone ? 1 : 0}`;
@@ -17,6 +18,7 @@ export struct TaskList {
   @Link homeStore: HomeStore;
   @State selectedTask: DayTaskInfo | null = null;
   private dialogController: CustomDialogController | null = null;
+  private achievementDialogController: CustomDialogController | null = null;
 
   build() {
     if (this.homeStore.dayTasks.length === 0) {
@@ -46,40 +48,58 @@ export struct TaskList {
 
   @Builder
   taskItem(dayTask: DayTaskInfo) {
-    Row() {
-      Image(this.getTaskIcon(dayTask.taskId))
-        .width(36)
-        .height(36)
-        .objectFit(ImageFit.Contain)
-        .margin({ right: 8 })
+    Column() {
+      Row() {
+        Image(this.getTaskIcon(dayTask.taskId))
+          .width(36)
+          .height(36)
+          .objectFit(ImageFit.Contain)
+          .margin({ right: 8 })
 
-      Column() {
-        Text(this.getTaskName(dayTask.taskId))
-          .fontSize(16)
-          .fontColor($r('app.color.text_primary'))
-          .fontWeight(FontWeight.Regular)
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
+        Column() {
+          Text(this.getTaskName(dayTask.taskId))
+            .fontSize(16)
+            .fontColor($r('app.color.text_primary'))
+            .fontWeight(FontWeight.Regular)
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
 
-      if (dayTask.isDone) {
-        Text($r('app.string.was_done'))
-          .fontSize(16)
-          .fontColor($r('app.color.text_primary'))
-          .fontWeight(FontWeight.Regular)
-      } else if (!isToday(this.homeStore.selectedDate)) {
-        Text(this.getReadOnlyStatusText())
-          .fontSize(16)
-          .fontColor($r('app.color.text_hint'))
-      } else {
-        Text(this.getTaskProgress(dayTask))
-          .fontSize(16)
-          .fontColor($r('app.color.text_primary'))
+        if (dayTask.isDone) {
+          Text($r('app.string.was_done'))
+            .fontSize(16)
+            .fontColor($r('app.color.text_primary'))
+            .fontWeight(FontWeight.Regular)
+        } else if (!isToday(this.homeStore.selectedDate)) {
+          Text(this.getReadOnlyStatusText())
+            .fontSize(16)
+            .fontColor($r('app.color.text_hint'))
+        } else {
+          Text(this.getTaskProgress(dayTask))
+            .fontSize(16)
+            .fontColor($r('app.color.text_primary'))
+        }
       }
+      .width('100%')
+      .height(44)
+      .alignItems(VerticalAlign.Center)
+
+      Row() {
+        Row()
+          .width(`${this.getProgressPercent(dayTask)}%`)
+          .height(4)
+          .borderRadius(2)
+          .backgroundColor($r('app.color.text_font_color'))
+      }
+      .width('100%')
+      .height(4)
+      .borderRadius(2)
+      .backgroundColor($r('app.color.bg_page'))
     }
     .width('100%')
-    .height(62)
+    .height(70)
     .padding({ left: '5%', right: '5%' })
+    .justifyContent(FlexAlign.Center)
     .backgroundColor($r('app.color.bg_card'))
     .borderRadius(16)
     .margin({ bottom: 12 })
@@ -130,6 +150,26 @@ export struct TaskList {
     return `${dayTask.finValue || '--'} / ${dayTask.targetValue} ${this.getUnitText(item.unit)}`;
   }
 
+  private getProgressPercent(dayTask: DayTaskInfo): number {
+    if (dayTask.isDone) {
+      return 100;
+    }
+
+    const item = getTaskCatalogItem(dayTask.taskId);
+    if (!item || item.type !== TaskType.VALUE) {
+      return 0;
+    }
+
+    const fin = parseFloat(dayTask.finValue) || 0;
+    const target = parseFloat(dayTask.targetValue) || 1;
+    if (target <= 0) {
+      return 0;
+    }
+
+    const pct = Math.round(fin / target * 100);
+    return Math.max(0, Math.min(100, pct));
+  }
+
   private getUnitText(unit: Resource): string {
     try {
       return getContext(this).resourceManager.getStringSync(unit);
@@ -169,7 +209,21 @@ export struct TaskList {
     this.selectedTask = null;
     const unlocked = this.homeStore.popNewlyUnlockedAchievement();
     if (unlocked !== null) {
-      promptAction.showToast({ message: `连续打卡${unlocked}天成就已解锁` });
+      this.openAchievementDialog(unlocked);
     }
+  }
+
+  private openAchievementDialog(threshold: number): void {
+    this.achievementDialogController = new CustomDialogController({
+      builder: AchievementUnlockDialog({
+        threshold: threshold,
+        onClose: () => {
+          this.achievementDialogController?.close();
+        }
+      }),
+      autoCancel: true,
+      alignment: DialogAlignment.Center
+    });
+    this.achievementDialogController.open();
   }
 }

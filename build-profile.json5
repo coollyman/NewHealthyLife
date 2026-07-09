@@ -1,6 +1,20 @@
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\linxiaoyi\\.ohos\\config\\default_NewHealthyLife_9Uj2Kg7LQ29ppEnysaRrTM459Ec42teqpyXUapnTpUQ=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001BFC67EA8D66C7ABFC9BD8B82E002E1580FB1EFAE95CA7595032CA55013B6FFA42D88EAE6E6D5D50",
+          "profile": "C:\\Users\\linxiaoyi\\.ohos\\config\\default_NewHealthyLife_9Uj2Kg7LQ29ppEnysaRrTM459Ec42teqpyXUapnTpUQ=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\linxiaoyi\\.ohos\\config\\default_NewHealthyLife_9Uj2Kg7LQ29ppEnysaRrTM459Ec42teqpyXUapnTpUQ=.p12",
+          "storePassword": "0000001B096C2CA923301D7A0FB622E8BD898F7194F87DB5E6AD4B477B7DB73460820E26E0C48BE9959B61"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",

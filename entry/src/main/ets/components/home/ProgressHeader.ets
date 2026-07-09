@@ -1,5 +1,6 @@
 import { HomeStore } from '../../viewmodel/HomeStore';
 import { WeekCalendar } from './WeekCalendar';
+
 /**
  * 首页顶部进度展示
  */
@@ -44,5 +45,4 @@ export struct ProgressHeader {
     })
     .justifyContent(FlexAlign.End)
   }
-
 }

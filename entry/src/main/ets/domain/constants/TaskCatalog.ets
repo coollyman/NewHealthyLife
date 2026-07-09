@@ -37,7 +37,7 @@ export interface TaskCatalogItem {
 }
 
 /**
- * 任务目录 - 6 个预设任务
+ * 任务目录 - 7 个预设任务
  */
 export const TASK_CATALOG: TaskCatalogItem[] = [
   {
@@ -88,10 +88,10 @@ export const TASK_CATALOG: TaskCatalogItem[] = [
     icon: $r('app.media.ic_task_smile'),
     dialogIcon: $r('app.media.ic_dialog_smile'),
     cardIcon: $r('app.media.ic_card_smile'),
-    type: TaskType.ONCE,
-    step: '',
-    pickerType: PickerType.NONE,
-    pickerRange: [],
+    type: TaskType.VALUE,
+    step: '1',
+    pickerType: PickerType.TEXT,
+    pickerRange: ['1', '2', '3'],
     unit: $r('app.string.unit_times'),
     isAlertEnabled: false,
     defaultTarget: '1'
@@ -102,10 +102,10 @@ export const TASK_CATALOG: TaskCatalogItem[] = [
     icon: $r('app.media.ic_task_brush'),
     dialogIcon: $r('app.media.ic_dialog_brush'),
     cardIcon: $r('app.media.ic_card_clean'),
-    type: TaskType.ONCE,
-    step: '',
-    pickerType: PickerType.NONE,
-    pickerRange: [],
+    type: TaskType.VALUE,
+    step: '1',
+    pickerType: PickerType.TEXT,
+    pickerRange: ['1', '2', '3'],
     unit: $r('app.string.unit_times'),
     isAlertEnabled: false,
     defaultTarget: '1'
@@ -123,6 +123,20 @@ export const TASK_CATALOG: TaskCatalogItem[] = [
     unit: $r('app.string.unit_pre_day'),
     isAlertEnabled: true,
     defaultTarget: '23:00'
+  },
+  {
+    taskId: 6,
+    name: $r('app.string.task_run'),
+    icon: $r('app.media.ic_task_run'),
+    dialogIcon: $r('app.media.ic_dialog_run'),
+    cardIcon: $r('app.media.ic_card_run'),
+    type: TaskType.VALUE,
+    step: '1',
+    pickerType: PickerType.TEXT,
+    pickerRange: ['1', '2', '3', '5'],
+    unit: $r('app.string.unit_km'),
+    isAlertEnabled: true,
+    defaultTarget: '1'
   }
 ];
 

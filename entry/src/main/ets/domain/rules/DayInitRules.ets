@@ -76,5 +76,5 @@ export function removeInactiveTaskFromDay(
   dayTasks: DayTaskInfo[],
   taskId: number
 ): DayTaskInfo[] {
-  return dayTasks.filter(t => t.taskId !== taskId);
+  return dayTasks.filter(t => t.taskId !== taskId || t.isDone);
 }

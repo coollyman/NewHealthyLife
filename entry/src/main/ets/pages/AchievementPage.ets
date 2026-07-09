@@ -1,6 +1,7 @@
 import { HomeStore } from '../viewmodel/HomeStore';
 import { AppConstants } from '../domain/constants/AppConstants';
 import { isAchievementUnlocked } from '../domain/rules/ConsecutiveDaysRules';
+import { getAchievementBadgeIcon } from '../domain/constants/AchievementBadge';
 
 /**
  * 成就页
@@ -94,14 +95,7 @@ export struct AchievementPage {
     const unlocked = isAchievementUnlocked(
       this.homeStore.consecutiveState.maxConsecutiveDays, threshold
     );
-    switch (threshold) {
-      case 3: return unlocked ? $r('app.media.ic_badge_3_on') : $r('app.media.ic_badge_3_off');
-      case 7: return unlocked ? $r('app.media.ic_badge_7_on') : $r('app.media.ic_badge_7_off');
-      case 30: return unlocked ? $r('app.media.ic_badge_30_on') : $r('app.media.ic_badge_30_off');
-      case 50: return unlocked ? $r('app.media.ic_badge_50_on') : $r('app.media.ic_badge_50_off');
-      case 73: return unlocked ? $r('app.media.ic_badge_73_on') : $r('app.media.ic_badge_73_off');
-      case 99: return unlocked ? $r('app.media.ic_badge_99_on') : $r('app.media.ic_badge_99_off');
-      default: return $r('app.media.ic_badge_3_off');
-    }
+    const icon = getAchievementBadgeIcon(threshold, unlocked);
+    return icon !== null ? icon : $r('app.media.ic_badge_3_off');
   }
 }

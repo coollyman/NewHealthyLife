@@ -20,6 +20,7 @@
     { "name": "task_smile", "value": "每日微笑" },
     { "name": "task_brush", "value": "刷牙" },
     { "name": "task_sleep", "value": "早睡" },
+    { "name": "task_run", "value": "跑步一公里" },
     { "name": "clock_in", "value": "打卡" },
     { "name": "got_it", "value": "知道了" },
     { "name": "was_done", "value": "已完成" },
@@ -52,9 +53,23 @@
     { "name": "unit_number", "value": "个" },
     { "name": "unit_times", "value": "次" },
     { "name": "unit_pre_day", "value": "/ 天" },
+    { "name": "unit_km", "value": "公里" },
     { "name": "consecutive_days", "value": "连续打卡天数" },
     { "name": "max_consecutive_days", "value": "最高连续打卡天数" },
     { "name": "today_progress", "value": "今日进度" },
-    { "name": "task_completed", "value": "已完成 %d/%d" }
+    { "name": "task_completed", "value": "已完成 %d/%d" },
+    { "name": "reminder_setting", "value": "提醒设置" },
+    { "name": "reminder_time", "value": "提醒时间" },
+    { "name": "reminder_frequency", "value": "提醒频率" },
+    { "name": "week_full_mon", "value": "周一" },
+    { "name": "week_full_tue", "value": "周二" },
+    { "name": "week_full_wed", "value": "周三" },
+    { "name": "week_full_thu", "value": "周四" },
+    { "name": "week_full_fri", "value": "周五" },
+    { "name": "week_full_sat", "value": "周六" },
+    { "name": "week_full_sun", "value": "周日" },
+    { "name": "month_view", "value": "月视图" },
+    { "name": "month_view_cancel", "value": "取消" },
+    { "name": "daily_progress", "value": "今日任务进度" }
   ]
 }

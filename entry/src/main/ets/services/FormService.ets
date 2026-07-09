@@ -4,6 +4,7 @@ import { FormInfo } from '../domain/models/FormInfo';
 import { DayInfo } from '../domain/models/DayInfo';
 import { DayTaskInfo } from '../domain/models/DayTaskInfo';
 import { AppConstants } from '../domain/constants/AppConstants';
+import { IFormService, FormInfoLike } from '../domain/ports/RepositoryPorts';
 
 /**
  * 卡片任务条目
@@ -44,6 +45,7 @@ export function getCardTaskName(taskId: number): string {
     case 3: return '每日微笑';
     case 4: return '刷牙';
     case 5: return '早睡';
+    case 6: return '跑步';
     default: return '';
   }
 }
@@ -70,7 +72,7 @@ export function buildCardFormData(dayInfo: DayInfo, dayTasks: DayTaskInfo[]): Ca
 /**
  * 服务卡片更新服务
  */
-export class FormService {
+export class FormService implements IFormService {
   private formRepo: FormInfoRepository = new FormInfoRepository();
 
   async saveForm(formId: string, formName: string, formDimension: number): Promise<void> {

@@ -3,7 +3,7 @@
  */
 export class AppConstants {
   // 任务数量
-  static readonly TASK_NUM: number = 6;
+  static readonly TASK_NUM: number = 7;
 
   // 成就阈值
   static readonly ACHIEVEMENT_THRESHOLDS: number[] = [3, 7, 30, 50, 73, 99];
