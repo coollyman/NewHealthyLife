@@ -15,6 +15,8 @@ import profileStoreTest from './ProfileStore.test';
 import { getDateOffset, compareDate, getThreeWeekWindow } from '../main/ets/domain/utils/DateUtils';
 import { DayInfo } from '../main/ets/domain/models/DayInfo';
 import { DayTaskInfo } from '../main/ets/domain/models/DayTaskInfo';
+import { TaskInfo } from '../main/ets/domain/models/TaskInfo';
+import { TaskType, PickerType } from '../main/ets/domain/constants/TaskCatalog';
 import { buildCardFormData } from '../main/ets/services/FormService';
 import { buildDayTaskRenderKey } from '../main/ets/components/home/TaskList';
 
@@ -65,6 +67,23 @@ export default function testsuite() {
       expect(formData.percentage).assertEqual(50);
       expect(formData.taskList.includes('喝水')).assertTrue();
       expect(formData.taskList.includes('每日微笑')).assertTrue();
+    });
+
+    it('buildCardFormData_usesCustomTaskNamesFromAllTasks', 0, () => {
+      const dayInfo = new DayInfo('20260709', 1, 0);
+      const customTask = new TaskInfo(
+        100, true, '10', false, '', '', '', -1,
+        '冥想', 'smile', TaskType.VALUE, '1', '分钟',
+        PickerType.TEXT, '10,20,30', '1,2,3,4,5,6,7',
+        false, false, 100, 0
+      );
+
+      const formData = buildCardFormData(dayInfo, [
+        new DayTaskInfo(1, '20260709', 100, '10', '0', false)
+      ], [customTask]);
+
+      expect(formData.taskList.includes('冥想')).assertTrue();
+      expect(formData.taskList.includes('任务100')).assertFalse();
     });
   });
 

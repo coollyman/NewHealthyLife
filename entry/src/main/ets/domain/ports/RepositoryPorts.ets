@@ -77,7 +77,7 @@ export interface IFormService {
   saveForm(formId: string, formName: string, formDimension: number): Promise<void>;
   removeForm(formId: string): Promise<void>;
   getAllForms(): Promise<FormInfoLike[]>;
-  updateAllForms(dayInfo: DayInfo, dayTasks: DayTaskInfo[]): Promise<void>;
+  updateAllForms(dayInfo: DayInfo, dayTasks: DayTaskInfo[], allTasks: TaskInfo[]): Promise<void>;
 }
 
 /**

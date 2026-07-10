@@ -1,7 +1,7 @@
 import { reminderAgentManager } from '@kit.BackgroundTasksKit';
 import { notificationManager } from '@kit.NotificationKit';
 import { TaskInfo } from '../domain/models/TaskInfo';
-import { TaskType } from '../domain/constants/TaskCatalog';
+import { getTaskCatalogItem, TaskType } from '../domain/constants/TaskCatalog';
 
 export class ReminderIntent {
   shouldSchedule: boolean;
@@ -48,14 +48,16 @@ export function parseAlertFrequency(freq: string): number[] {
 }
 
 export function buildReminderIntent(task: TaskInfo): ReminderIntent {
-  if (!task.isAlert || !task.isOpen) {
+  if (!task.isOpen) {
     return new ReminderIntent(false);
   }
 
   let timeStr: string;
   let daysOfWeek: number[] = [];
+  const catalog = getTaskCatalogItem(task.taskId);
+  const taskType = catalog ? catalog.type : task.taskType;
 
-  if (task.taskType === TaskType.TIME) {
+  if (taskType === TaskType.TIME) {
     // 时间类任务：从 targetValue 读取
     timeStr = task.targetValue;
     // 每日重复

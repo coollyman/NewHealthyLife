@@ -308,7 +308,7 @@ export class FakeFormService implements IFormService {
     return result;
   }
 
-  async updateAllForms(dayInfo: DayInfo, dayTasks: DayTaskInfo[]): Promise<void> {
+  async updateAllForms(dayInfo: DayInfo, dayTasks: DayTaskInfo[], allTasks: TaskInfo[] = []): Promise<void> {
     this.updateCount++;
     this.lastDayInfo = new DayInfo(dayInfo.date, dayInfo.targetTaskNum, dayInfo.finTaskNum);
     const copied: DayTaskInfo[] = [];

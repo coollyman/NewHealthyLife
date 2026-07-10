@@ -286,7 +286,7 @@ export class HomeStore {
     this.updateMonthViewData(this.dayInfo);
 
     // 更新服务卡片
-    await this.formService.updateAllForms(this.dayInfo, this.dayTasks);
+    await this.formService.updateAllForms(this.dayInfo, this.dayTasks, this.allTasks);
 
     return true;
   }
@@ -332,7 +332,7 @@ export class HomeStore {
     this.updateCalendarDayStatus(todayData.dayInfo);
     this.updateMonthViewData(todayData.dayInfo);
 
-    await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks);
+    await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks, this.allTasks);
 
     // 如果任务启用了提醒，创建提醒 — 非阻塞
     if (task.isAlert) {
@@ -407,7 +407,7 @@ export class HomeStore {
       await this.taskRepo.updateTask(task);
     }
 
-    await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks);
+    await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks, this.allTasks);
   }
 
   /**
@@ -449,7 +449,7 @@ export class HomeStore {
       await this.taskRepo.updateTask(task);
     }
 
-    await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks);
+    await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks, this.allTasks);
   }
 
   /**
@@ -816,7 +816,7 @@ export class HomeStore {
     this.updateMonthViewData(this.dayInfo);
 
     // 服务卡片仍显示真实完成度，不把补救显示成满分
-    await this.formService.updateAllForms(this.dayInfo, this.dayTasks);
+    await this.formService.updateAllForms(this.dayInfo, this.dayTasks, this.allTasks);
 
     return true;
   }
@@ -906,7 +906,7 @@ export class HomeStore {
     this.updateCalendarDayStatus(todayData.dayInfo);
     this.updateMonthViewData(todayData.dayInfo);
 
-    await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks);
+    await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks, this.allTasks);
   }
 
   /**
@@ -949,6 +949,6 @@ export class HomeStore {
     this.updateCalendarDayStatus(todayData.dayInfo);
     this.updateMonthViewData(todayData.dayInfo);
 
-    await this.formService.updateAllForms(todayData.dayInfo, this.dayTasks);
+    await this.formService.updateAllForms(todayData.dayInfo, this.dayTasks, this.allTasks);
   }
 }

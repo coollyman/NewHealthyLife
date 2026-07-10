@@ -63,14 +63,17 @@ export function ensureDayTaskSnapshots(
 }
 
 /**
- * 重新计算当日聚合进度
+ * 重新计算当日聚合进度。
+ * targetTaskNum 使用 dayTasks.length，不再回退到 activeTaskCount——
+ * 如果今天没有排期任务（scheduleDays 过滤后为空），targetTaskNum 应为 0 而非总启用数。
+ * activeTaskCount 仅在 dayTasks 为空且 dayInfo 已有 targetTaskNum > 0 时用于保留旧值。
  */
 export function recalculateDayInfo(
   dayInfo: DayInfo,
   dayTasks: DayTaskInfo[],
   activeTaskCount: number
 ): DayInfo {
-  const targetTaskNum = dayTasks.length > 0 ? dayTasks.length : activeTaskCount;
+  const targetTaskNum = dayTasks.length > 0 ? dayTasks.length : 0;
   const finTaskNum = countFinishedTasks(dayTasks);
   return new DayInfo(dayInfo.date, targetTaskNum, finTaskNum);
 }

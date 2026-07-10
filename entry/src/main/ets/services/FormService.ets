@@ -109,12 +109,12 @@ export class FormService implements IFormService {
     return await this.formRepo.getAllForms();
   }
 
-  async updateAllForms(dayInfo: DayInfo, dayTasks: DayTaskInfo[]): Promise<void> {
+  async updateAllForms(dayInfo: DayInfo, dayTasks: DayTaskInfo[], allTasks: TaskInfo[] = []): Promise<void> {
     const forms = await this.formRepo.getAllForms();
     for (const form of forms) {
       try {
         if (form.formName === AppConstants.FORM_NAME_AGENCY) {
-          await this.updateAgencyCard(form.formId, dayTasks);
+          await this.updateAgencyCard(form.formId, dayTasks, allTasks);
         } else if (form.formName === AppConstants.FORM_NAME_PROGRESS) {
           await this.updateProgressCard(form.formId, dayInfo);
         }
@@ -124,8 +124,8 @@ export class FormService implements IFormService {
     }
   }
 
-  private async updateAgencyCard(formId: string, dayTasks: DayTaskInfo[]): Promise<void> {
-    const formData = buildCardFormData(new DayInfo('', dayTasks.length, dayTasks.filter(t => t.isDone).length), dayTasks);
+  private async updateAgencyCard(formId: string, dayTasks: DayTaskInfo[], allTasks: TaskInfo[]): Promise<void> {
+    const formData = buildCardFormData(new DayInfo('', dayTasks.length, dayTasks.filter(t => t.isDone).length), dayTasks, allTasks);
     await formProvider.updateForm(formId, formBindingData.createFormBindingData(formData));
   }
 

@@ -12,13 +12,39 @@ param(
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
-$Hdc = "C:\Program Files\Huawei\DevEco Studio\sdk\default\openharmony\toolchains\hdc.exe"
 $MainHap = Join-Path $ProjectRoot "entry\build\default\outputs\default\entry-default-signed.hap"
 $TestHap = Join-Path $ProjectRoot "entry\build\default\outputs\ohosTest\entry-ohosTest-signed.hap"
 
-if (!(Test-Path $Hdc)) {
-  throw "hdc not found at fixed path: $Hdc"
+function Resolve-Hdc {
+  $candidates = @()
+  if ($env:DEVECO_SDK_HOME) {
+    $candidates += (Join-Path $env:DEVECO_SDK_HOME "default\openharmony\toolchains\hdc.exe")
+  }
+
+  $localProperties = Join-Path $ProjectRoot "local.properties"
+  if (Test-Path $localProperties) {
+    $sdkLine = Get-Content $localProperties | Where-Object { $_ -match "^sdk\.dir=" } | Select-Object -First 1
+    if ($sdkLine) {
+      $sdkDir = ($sdkLine -replace "^sdk\.dir=", "") -replace "\\:", ":"
+      $candidates += (Join-Path $sdkDir "default\openharmony\toolchains\hdc.exe")
+    }
+  }
+
+  $pathHdc = Get-Command hdc.exe -ErrorAction SilentlyContinue
+  if ($pathHdc) {
+    $candidates += $pathHdc.Source
+  }
+
+  foreach ($candidate in $candidates) {
+    if ($candidate -and (Test-Path $candidate)) {
+      return (Resolve-Path $candidate).Path
+    }
+  }
+
+  throw "hdc.exe not found. Set DEVECO_SDK_HOME or check local.properties sdk.dir."
 }
+
+$Hdc = Resolve-Hdc
 
 Push-Location $ProjectRoot
 try {

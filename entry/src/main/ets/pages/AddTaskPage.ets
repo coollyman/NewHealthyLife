@@ -93,14 +93,17 @@ struct AddTaskPage {
           }
         }
         .width('100%')
+        .justifyContent(FlexAlign.Start)
       }
       .width('100%')
       .layoutWeight(1)
+      .align(Alignment.TopStart)
       .scrollBar(BarState.Off)
       .edgeEffect(EdgeEffect.Spring)
     }
     .width('100%')
     .height('100%')
+    .justifyContent(FlexAlign.Start)
     .backgroundColor($r('app.color.bg_page'))
   }
 
@@ -369,6 +372,29 @@ struct AddTaskPage {
 
     const taskType = this.typeEnums[this.customTypeIndex];
     const pickerType = taskType === TaskType.TIME ? PickerType.TIME : PickerType.TEXT;
+
+    // 校验目标值
+    if (taskType === TaskType.TIME) {
+      // 时间类：校验 HH:mm 格式
+      const timeMatch = this.customTarget.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+      if (!timeMatch) {
+        promptAction.showToast({ message: '请输入有效时间，如 08:00' });
+        return;
+      }
+    } else {
+      // 数值类：校验正数
+      const targetNum = parseFloat(this.customTarget);
+      if (!Number.isFinite(targetNum) || targetNum <= 0) {
+        promptAction.showToast({ message: '目标值必须大于0' });
+        return;
+      }
+      // 校验步进
+      const stepNum = parseFloat(this.customStep || '1');
+      if (!Number.isFinite(stepNum) || stepNum <= 0) {
+        promptAction.showToast({ message: '步进值必须大于0' });
+        return;
+      }
+    }
 
     const input = new CustomTaskInput();
     input.taskName = name;

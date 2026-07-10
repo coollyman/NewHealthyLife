@@ -3,9 +3,11 @@ import { Want } from '@kit.AbilityKit';
 import { CardFormData, FormService, buildCardFormData } from '../services/FormService';
 import { DayInfoRepository } from '../data/db/DayInfoRepository';
 import { DayTaskRepository } from '../data/db/DayTaskRepository';
+import { TaskInfoRepository } from '../data/db/TaskInfoRepository';
 import { getToday } from '../domain/utils/DateUtils';
 import { DayInfo } from '../domain/models/DayInfo';
 import { DayTaskInfo } from '../domain/models/DayTaskInfo';
+import { TaskInfo } from '../domain/models/TaskInfo';
 
 /**
  * 服务卡片 Ability
@@ -41,13 +43,15 @@ export default class FormAbility extends FormExtensionAbility {
     const today = getToday();
     const dayRepo = new DayInfoRepository();
     const dayTaskRepo = new DayTaskRepository();
+    const taskRepo = new TaskInfoRepository();
 
     let dayInfo: DayInfo | null = await dayRepo.getDayInfo(today);
     if (!dayInfo) {
       dayInfo = new DayInfo(today, 0, 0);
     }
     const dayTasks: DayTaskInfo[] = await dayTaskRepo.getDayTasks(today);
+    const allTasks: TaskInfo[] = await taskRepo.getAllTasks();
 
-    return buildCardFormData(dayInfo, dayTasks);
+    return buildCardFormData(dayInfo, dayTasks, allTasks);
   }
 }
