@@ -20,7 +20,7 @@ import {
 } from '../domain/rules/ConsecutiveDaysRules';
 import { initializeDayData, ensureDayTaskSnapshots, recalculateDayInfo, removeInactiveTaskFromDay } from '../domain/rules/DayInitRules';
 import { getToday, getDateOffset, compareDate, getMonthGrid, getMondayOfWeek, getMonthOffset, getYearMonth, diffDays, getDayOfWeek } from '../domain/utils/DateUtils';
-import { getTaskCatalogItem } from '../domain/constants/TaskCatalog';
+import { getTaskCatalogItem, TaskType } from '../domain/constants/TaskCatalog';
 import { isScheduledOnDay } from '../domain/constants/TaskDisplayMeta';
 import { createOrUpdateReminder, cancelReminder, hasNotificationPermission, requestNotificationPermission } from '../services/ReminderService';
 import {
@@ -464,13 +464,9 @@ export class HomeStore {
     task.targetValue = targetValue;
     await this.taskRepo.updateTask(task);
 
-    // 更新今天的未完成任务快照目标
+    // 更新今天的任务快照目标
     const today = getToday();
-    const dayTask = await this.dayTaskRepo.getDayTask(today, taskId);
-    if (dayTask && !dayTask.isDone) {
-      dayTask.targetValue = targetValue;
-      await this.dayTaskRepo.updateDayTask(dayTask);
-    }
+    await this.syncTodayDayTaskTarget(today, task);
 
     const todayData = await this.loadDayData(today);
     await this.syncTodayCompletionState(todayData.dayInfo);
@@ -932,13 +928,9 @@ export class HomeStore {
     await this.taskRepo.updateTask(task);
     this.allTasks = await this.taskRepo.getAllTasks();
 
-    // 更新今日未完成任务快照的目标值
+    // 更新今日任务快照的目标值
     const today = getToday();
-    const dayTask = await this.dayTaskRepo.getDayTask(today, task.taskId);
-    if (dayTask && !dayTask.isDone) {
-      dayTask.targetValue = task.targetValue;
-      await this.dayTaskRepo.updateDayTask(dayTask);
-    }
+    await this.syncTodayDayTaskTarget(today, task);
 
     // 刷新今日数据
     const todayData = await this.loadDayData(today);
@@ -952,6 +944,25 @@ export class HomeStore {
     this.updateMonthViewData(todayData.dayInfo);
 
     await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks, this.allTasks);
+  }
+
+  private async syncTodayDayTaskTarget(today: string, task: TaskInfo): Promise<void> {
+    const dayTask = await this.dayTaskRepo.getDayTask(today, task.taskId);
+    if (!dayTask) {
+      return;
+    }
+
+    if (task.taskType !== TaskType.VALUE && dayTask.isDone) {
+      return;
+    }
+
+    dayTask.targetValue = task.targetValue;
+    if (task.taskType === TaskType.VALUE) {
+      const fin = parseFloat(dayTask.finValue) || 0;
+      const target = parseFloat(task.targetValue) || 0;
+      dayTask.isDone = target > 0 && fin >= target;
+    }
+    await this.dayTaskRepo.updateDayTask(dayTask);
   }
 
   /**

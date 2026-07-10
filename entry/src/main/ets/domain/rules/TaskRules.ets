@@ -8,12 +8,11 @@ import { TaskInfo } from '../models/TaskInfo';
 
 /**
  * 判断任务是否可以打卡
+ * - 未完成：可以打卡
+ * - 已完成：不可以（无论什么类型，完成后不再重复打卡）
  */
 export function canCheckin(task: DayTaskInfo, taskInfo?: TaskInfo): boolean {
-  if (!task.isDone) {
-    return true;
-  }
-  return taskInfo !== undefined && taskInfo.taskType === TaskType.VALUE;
+  return !task.isDone;
 }
 
 /**
@@ -25,7 +24,7 @@ export function canCheckin(task: DayTaskInfo, taskInfo?: TaskInfo): boolean {
  * @param taskInfo 全局任务配置（用于获取 taskType 和 step）
  */
 export function checkinTask(dayTask: DayTaskInfo, taskInfo: TaskInfo): DayTaskInfo {
-  if (dayTask.isDone && taskInfo.taskType !== TaskType.VALUE) {
+  if (dayTask.isDone) {
     return dayTask; // 已完成不重复打卡
   }
 
@@ -42,13 +41,13 @@ export function checkinTask(dayTask: DayTaskInfo, taskInfo: TaskInfo): DayTaskIn
       break;
     case TaskType.VALUE:
       const currentFin = parseFloat(dayTask.finValue) || 0;
-      const target = parseFloat(dayTask.targetValue) || 0;
+      const targetValue = taskInfo.targetValue || dayTask.targetValue;
+      const target = parseFloat(targetValue) || 0;
       const step = parseFloat(taskInfo.step) || 1;
       const newFin = currentFin + step;
+      result.targetValue = targetValue;
       result.finValue = newFin.toString();
-      if (newFin >= target) {
-        result.isDone = true;
-      }
+      result.isDone = target > 0 && newFin >= target;
       break;
   }
 

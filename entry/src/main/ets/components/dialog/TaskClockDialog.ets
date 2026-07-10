@@ -194,6 +194,7 @@ struct TaskClockDialog {
   }
 
   private canContinueCheckin(): boolean {
+    // 已完成的任务不可再打卡，未完成的都可以打卡（包括 VALUE 类型的多次打卡）
     return !this.dayTask.isDone;
   }
 

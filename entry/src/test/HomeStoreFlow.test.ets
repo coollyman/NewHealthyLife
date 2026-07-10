@@ -152,6 +152,35 @@ export default function homeStoreFlowTest() {
       expect(afterUpdate!.targetValue).assertEqual('07:30');
       expect(afterUpdate!.isDone).assertTrue();
     });
+
+    it('updateNumericTarget_reopensTodayWhenNewTargetIsHigher', 0, async () => {
+      const deps2 = makeDeps();
+      const store2 = makeDefaultStore(deps2);
+      await store2.initAppData();
+      await store2.enableTask(2); // 苹果默认 target=1 step=1
+
+      const apple = store2.dayTasks.find(t => t.taskId === 2);
+      expect(apple !== null && apple !== undefined).assertTrue();
+      if (apple) {
+        await store2.checkin(apple.id);
+      }
+      const done = await deps2.dayTaskRepo.getDayTask(TODAY, 2);
+      expect(done !== null && done!.isDone).assertTrue();
+
+      await store2.updateTaskTarget(2, '3');
+      const reopened = await deps2.dayTaskRepo.getDayTask(TODAY, 2);
+      expect(reopened !== null && reopened!.targetValue).assertEqual('3');
+      expect(reopened!.finValue).assertEqual('1');
+      expect(reopened!.isDone).assertFalse();
+
+      const refreshed = store2.dayTasks.find(t => t.taskId === 2);
+      if (refreshed) {
+        await store2.checkin(refreshed.id);
+      }
+      const afterSecond = await deps2.dayTaskRepo.getDayTask(TODAY, 2);
+      expect(afterSecond!.finValue).assertEqual('2');
+      expect(afterSecond!.isDone).assertFalse();
+    });
   });
 
   describe('HomeStoreFlow_CheckinStreak', () => {

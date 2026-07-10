@@ -66,6 +66,16 @@ export default function numericCheckinTest() {
       expect(r2.finValue).assertEqual('2');
     });
 
+    it('value_staleSnapshotUsesCurrentTaskTarget', 0, () => {
+      const taskInfo = new TaskInfo(2, false, '3', false, '', '', '', -1, '', '', TaskType.VALUE, '1', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const staleSnapshot = new DayTaskInfo(1, '20260101', 2, '1', '0', false);
+      const r = checkinTask(staleSnapshot, taskInfo);
+
+      expect(r.targetValue).assertEqual('3');
+      expect(r.finValue).assertEqual('1');
+      expect(r.isDone).assertFalse();
+    });
+
     it('value_doneTaskCheckinIsIdempotent', 0, () => {
       const t = new DayTaskInfo(1, '20260101', 1, '1', '1', true);
       const taskInfo = new TaskInfo(1, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '0.5', '', PickerType.NONE, '', '', false, false, 0, 0);
