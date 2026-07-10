@@ -1,7 +1,7 @@
 import { HomeStore } from '../../viewmodel/HomeStore';
 import { DayTaskInfo } from '../../domain/models/DayTaskInfo';
 import { TaskType } from '../../domain/constants/TaskCatalog';
-import { getTaskDisplayMeta, getIconResource } from '../../domain/constants/TaskDisplayMeta';
+import { getTaskDisplayMeta, getIconResource, getTaskNameString } from '../../domain/constants/TaskDisplayMeta';
 import { isToday } from '../../domain/utils/DateUtils';
 import { TaskClockDialog } from '../dialog/TaskClockDialog';
 import { AchievementUnlockDialog } from '../dialog/AchievementUnlockDialog';
@@ -145,16 +145,16 @@ export struct TaskList {
     }
     const meta = getTaskDisplayMeta(task);
     if (meta.isPreset) {
-      // 预设任务用 Resource 解析
+      // 预设任务：getTaskNameString 返回 string key 如 'task_drink'
       try {
-        const catalog = getTaskDisplayMeta(task);
-        // catalog 的 taskName 是 Resource id 字符串
-        const resource = $r(`app.string.${meta.taskName}`);
+        const key = getTaskNameString(task);
+        const resource = $r(`app.string.${key}`);
         return getContext(this).resourceManager.getStringSync(resource);
       } catch (e) {
         return meta.taskName;
       }
     }
+    // 自定义任务：直接返回 taskName 字符串
     return meta.taskName;
   }
 

@@ -29,6 +29,13 @@ export class TaskDisplayMeta {
 }
 
 /**
+ * 预设任务的字符串 key 映射（taskId -> resource string key）
+ */
+const PRESET_TASK_NAME_KEYS: string[] = [
+  'task_getup', 'task_drink', 'task_apple', 'task_smile', 'task_brush', 'task_sleep', 'task_run'
+];
+
+/**
  * 图标 key -> Resource 白名单映射
  * 预设任务沿用 catalog 资源；自定义任务从此白名单选取
  */
@@ -86,7 +93,10 @@ export function getTaskDisplayMeta(task: TaskInfo): TaskDisplayMeta {
   if (task.isPreset) {
     const catalog = getTaskCatalogItem(task.taskId);
     if (catalog) {
-      meta.taskName = catalog.name.id.toString(); // Resource id，UI 用 resourceManager 解析
+      // 预设任务：用 taskId 映射到 string key
+      meta.taskName = task.taskId >= 0 && task.taskId < PRESET_TASK_NAME_KEYS.length
+        ? PRESET_TASK_NAME_KEYS[task.taskId]
+        : '';
       meta.iconKey = catalog.iconKey;
       meta.taskType = catalog.type;
       meta.step = catalog.step;
@@ -115,16 +125,13 @@ export function getTaskDisplayMeta(task: TaskInfo): TaskDisplayMeta {
 }
 
 /**
- * 获取任务名称字符串（需要 Resource 解析的由 UI 层处理）
- * 预设任务返回 Resource id 字符串，UI 用 resourceManager.getStringSync；
+ * 获取任务名称字符串。
+ * 预设任务返回 string key（如 'task_drink'），UI 层用 $r(`app.string.${key}`) 解析；
  * 自定义任务直接返回 taskName 字符串。
  */
 export function getTaskNameString(task: TaskInfo): string {
-  if (task.isPreset) {
-    const catalog = getTaskCatalogItem(task.taskId);
-    if (catalog) {
-      return catalog.name.id.toString();
-    }
+  if (task.isPreset && task.taskId >= 0 && task.taskId < PRESET_TASK_NAME_KEYS.length) {
+    return PRESET_TASK_NAME_KEYS[task.taskId];
   }
   return task.taskName;
 }

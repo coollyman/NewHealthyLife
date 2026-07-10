@@ -54,8 +54,21 @@ export function getCardTaskName(taskId: number, allTasks: TaskInfo[] = []): stri
       default: return '任务' + taskId;
     }
   }
-  const meta = getTaskDisplayMeta(task);
-  return meta.taskName;
+  // 预设任务用硬编码中文名（FormService 无 resourceManager 访问）
+  if (task.isPreset) {
+    switch (task.taskId) {
+      case 0: return '早起';
+      case 1: return '喝水';
+      case 2: return '吃苹果';
+      case 3: return '每日微笑';
+      case 4: return '刷牙';
+      case 5: return '早睡';
+      case 6: return '跑步';
+      default: return task.taskName || '任务';
+    }
+  }
+  // 自定义任务直接返回 taskName
+  return task.taskName;
 }
 
 export function buildCardFormData(dayInfo: DayInfo, dayTasks: DayTaskInfo[], allTasks: TaskInfo[] = []): CardFormData {
