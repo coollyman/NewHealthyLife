@@ -1,7 +1,8 @@
 import { DayInfo } from '../models/DayInfo';
 import { DayTaskInfo } from '../models/DayTaskInfo';
 import { RecoveryInfo } from '../models/RecoveryInfo';
-import { getMondayOfWeek, getDateOffset } from '../utils/DateUtils';
+import { TaskInfo } from '../models/TaskInfo';
+import { TaskType } from '../constants/TaskCatalog';
 
 /**
  * 成就类型枚举 — 多维成就
@@ -12,6 +13,8 @@ export enum AchievementType {
   RECOVERY = 'recovery',           // 恢复能力：使用补救后第二天完成100%
   PERFECT_WEEK = 'perfect_week'    // 全勤周：自然周内每天有效完成或补救
 }
+
+export const OVERACHIEVEMENT_THRESHOLDS: number[] = [200, 300, 400, 500];
 
 /**
  * 多维成就状态
@@ -26,6 +29,97 @@ export class AchievementStatus {
     this.unlocked = unlocked;
     this.description = description;
   }
+}
+
+/**
+ * 单项任务成就摘要。
+ * singleAchieved: 该任务历史上至少完成过一次。
+ * maxPercent: 数值任务历史最高完成百分比；非数值任务完成后为 100。
+ */
+export class TaskAchievementSummary {
+  taskId: number;
+  taskName: string;
+  iconKey: string;
+  taskType: TaskType;
+  singleAchieved: boolean;
+  maxPercent: number;
+
+  constructor(
+    taskId: number,
+    taskName: string,
+    iconKey: string,
+    taskType: TaskType,
+    singleAchieved: boolean = false,
+    maxPercent: number = 0
+  ) {
+    this.taskId = taskId;
+    this.taskName = taskName;
+    this.iconKey = iconKey;
+    this.taskType = taskType;
+    this.singleAchieved = singleAchieved;
+    this.maxPercent = maxPercent;
+  }
+
+  isMultiplierUnlocked(threshold: number): boolean {
+    return this.taskType === TaskType.VALUE && this.maxPercent >= threshold;
+  }
+}
+
+export function calculateTaskAchievementSummaries(
+  dayTasks: DayTaskInfo[],
+  tasks: TaskInfo[]
+): TaskAchievementSummary[] {
+  const taskMap = new Map<number, TaskInfo>();
+  for (const task of tasks) {
+    taskMap.set(task.taskId, task);
+  }
+
+  const summaryMap = new Map<number, TaskAchievementSummary>();
+  for (const task of tasks) {
+    summaryMap.set(task.taskId, new TaskAchievementSummary(
+      task.taskId,
+      task.taskName,
+      task.iconKey,
+      task.taskType,
+      false,
+      0
+    ));
+  }
+
+  for (const dayTask of dayTasks) {
+    const task = taskMap.get(dayTask.taskId);
+    if (!task) {
+      continue;
+    }
+
+    let summary = summaryMap.get(dayTask.taskId);
+    if (!summary) {
+      summary = new TaskAchievementSummary(dayTask.taskId, task.taskName, task.iconKey, task.taskType, false, 0);
+      summaryMap.set(dayTask.taskId, summary);
+    }
+
+    if (dayTask.isDone) {
+      summary.singleAchieved = true;
+    }
+
+    const target = parseFloat(dayTask.targetValue) || 0;
+    const fin = parseFloat(dayTask.finValue) || 0;
+    if (task.taskType === TaskType.VALUE && target > 0) {
+      const percent = Math.floor(fin / target * 100);
+      if (percent > summary.maxPercent) {
+        summary.maxPercent = percent;
+      }
+      if (percent >= 100) {
+        summary.singleAchieved = true;
+      }
+    } else if (dayTask.isDone && summary.maxPercent < 100) {
+      summary.maxPercent = 100;
+    }
+  }
+
+  return Array.from(summaryMap.values()).sort((a: TaskAchievementSummary, b: TaskAchievementSummary): number => {
+    return a.taskId - b.taskId;
+  });
 }
 
 /**

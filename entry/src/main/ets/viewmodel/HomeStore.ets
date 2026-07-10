@@ -37,6 +37,7 @@ import {
   isDayCompletedForStreak
 } from '../domain/rules/RecoveryRules';
 import { generateWeeklyReview, WeeklyReview } from '../domain/rules/WeeklyReviewRules';
+import { calculateTaskAchievementSummaries, TaskAchievementSummary } from '../domain/rules/AchievementRules';
 
 export function isHomeStoreDataReady(tasks: TaskInfo[] | undefined | null): boolean {
   return !!tasks && tasks.length > 0;
@@ -256,13 +257,16 @@ export class HomeStore {
    */
   async checkin(dayTaskId: number): Promise<boolean> {
     const dayTask = this.dayTasks.find(t => t.id === dayTaskId);
-    if (!dayTask || !canCheckin(dayTask)) {
+    if (!dayTask) {
       return false;
     }
 
     // 获取任务配置（用于 taskType 和 step）
     const taskInfo = this.allTasks.find(t => t.taskId === dayTask.taskId);
     if (!taskInfo) {
+      return false;
+    }
+    if (!canCheckin(dayTask, taskInfo)) {
       return false;
     }
 
@@ -442,9 +446,8 @@ export class HomeStore {
     this.updateCalendarDayStatus(todayData.dayInfo);
     this.updateMonthViewData(todayData.dayInfo);
 
-    // 如果是支持提醒的任务且已启用，更新提醒
-    const catalog = getTaskCatalogItem(taskId);
-    if (catalog && catalog.isAlertEnabled && task.isOpen) {
+    // 如果任务启用了提醒，更新提醒
+    if (task.isAlert && task.isOpen) {
       task.reminderId = await createOrUpdateReminder(task);
       await this.taskRepo.updateTask(task);
     }
@@ -803,11 +806,7 @@ export class HomeStore {
 
     // 使用补救后，如果今天尚未被计为完成，增加一次连续天数
     if (!this.consecutiveState.currentDayStatus) {
-      const newCurrent = this.consecutiveState.currentConsecutiveDays + 1;
-      const newMax = Math.max(this.consecutiveState.maxConsecutiveDays, newCurrent);
-      this.consecutiveState = new ConsecutiveDaysState(
-        newMax, newCurrent, true, null, this.consecutiveState.maxConsecutiveDays
-      );
+      this.consecutiveState = onAllTasksCompleted(this.consecutiveState);
       await this.prefRepo.saveConsecutiveState(this.consecutiveState);
     }
 
@@ -831,6 +830,12 @@ export class HomeStore {
     const weekDayInfos = await this.dayRepo.getDayInfoList(startDate, today);
     const weekDayTasks = await this.dayTaskRepo.getDayTasksByDateRange(startDate, today);
     return generateWeeklyReview(weekDayInfos, weekDayTasks);
+  }
+
+  async getTaskAchievementSummaries(): Promise<TaskAchievementSummary[]> {
+    const today = getToday();
+    const allDayTasks = await this.dayTaskRepo.getDayTasksByDateRange('19700101', today);
+    return calculateTaskAchievementSummaries(allDayTasks, this.allTasks);
   }
 
   /**
@@ -949,6 +954,6 @@ export class HomeStore {
     this.updateCalendarDayStatus(todayData.dayInfo);
     this.updateMonthViewData(todayData.dayInfo);
 
-    await this.formService.updateAllForms(todayData.dayInfo, this.dayTasks, this.allTasks);
+    await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks, this.allTasks);
   }
 }

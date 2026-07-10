@@ -1,13 +1,17 @@
 import { describe, it, expect } from '@ohos/hypium';
 import {
+  calculateTaskAchievementSummaries,
   checkStableCompletion,
   checkRecoveryAchievement,
   checkPerfectWeek,
-  AchievementType
+  AchievementType,
+  OVERACHIEVEMENT_THRESHOLDS
 } from '../main/ets/domain/rules/AchievementRules';
 import { DayInfo } from '../main/ets/domain/models/DayInfo';
 import { DayTaskInfo } from '../main/ets/domain/models/DayTaskInfo';
 import { RecoveryInfo } from '../main/ets/domain/models/RecoveryInfo';
+import { TaskInfo } from '../main/ets/domain/models/TaskInfo';
+import { TaskType, PickerType } from '../main/ets/domain/constants/TaskCatalog';
 
 /**
  * 多维成就规则单元测试
@@ -147,6 +151,58 @@ export default function achievementUpgradeTest() {
     it('emptyData_doesNotUnlock', 0, () => {
       const result = checkPerfectWeek([], []);
       expect(result.unlocked).assertFalse();
+    });
+  });
+
+  describe('Achievement_TaskSummary', () => {
+    it('completedTask_unlocksSingleTaskMedal', 0, () => {
+      const tasks: TaskInfo[] = [
+        new TaskInfo(1, true, '1', false, '', '', '', -1, '喝水', 'drink', TaskType.VALUE, '0.5', 'L', PickerType.TEXT, '1,2,3', '', false, false, 1, 0)
+      ];
+      const dayTasks: DayTaskInfo[] = [
+        new DayTaskInfo(1, '20260101', 1, '1', '1', true)
+      ];
+
+      const summaries = calculateTaskAchievementSummaries(dayTasks, tasks);
+
+      expect(summaries.length).assertEqual(1);
+      expect(summaries[0].taskId).assertEqual(1);
+      expect(summaries[0].iconKey).assertEqual('drink');
+      expect(summaries[0].singleAchieved).assertTrue();
+      expect(summaries[0].maxPercent).assertEqual(100);
+    });
+
+    it('numericTaskAtFourTimesTarget_unlocks200To400Percent', 0, () => {
+      const tasks: TaskInfo[] = [
+        new TaskInfo(6, true, '1', false, '', '', '', -1, '跑步', 'run', TaskType.VALUE, '1', '公里', PickerType.TEXT, '1,2,3', '', false, false, 6, 0)
+      ];
+      const dayTasks: DayTaskInfo[] = [
+        new DayTaskInfo(1, '20260101', 6, '1', '4', true)
+      ];
+
+      const summaries = calculateTaskAchievementSummaries(dayTasks, tasks);
+
+      expect(OVERACHIEVEMENT_THRESHOLDS.length).assertEqual(4);
+      expect(summaries[0].maxPercent).assertEqual(400);
+      expect(summaries[0].isMultiplierUnlocked(200)).assertTrue();
+      expect(summaries[0].isMultiplierUnlocked(300)).assertTrue();
+      expect(summaries[0].isMultiplierUnlocked(400)).assertTrue();
+      expect(summaries[0].isMultiplierUnlocked(500)).assertFalse();
+    });
+
+    it('onceTask_doesNotUnlockOverachievement', 0, () => {
+      const tasks: TaskInfo[] = [
+        new TaskInfo(100, true, '1', false, '', '', '', -1, '冥想', 'meditation', TaskType.ONCE, '1', '次', PickerType.NONE, '', '', false, false, 100, 0)
+      ];
+      const dayTasks: DayTaskInfo[] = [
+        new DayTaskInfo(1, '20260101', 100, '1', '1', true)
+      ];
+
+      const summaries = calculateTaskAchievementSummaries(dayTasks, tasks);
+
+      expect(summaries[0].singleAchieved).assertTrue();
+      expect(summaries[0].maxPercent).assertEqual(100);
+      expect(summaries[0].isMultiplierUnlocked(200)).assertFalse();
     });
   });
 

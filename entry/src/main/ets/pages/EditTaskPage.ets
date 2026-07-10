@@ -612,10 +612,13 @@ struct EditTaskPage {
         updated.alertFrequency = this.alertFrequency;
         await this.homeStore.updateTaskConfig(updated);
 
-        // 如果提醒设置变化，更新提醒
-        if (updated.isAlert) {
-          this.syncSelectedToFrequency();
-          updated.alertFrequency = this.alertFrequency;
+        // 无论开关都调用 updateTaskAlert（关闭时取消已有 reminder）
+        this.syncSelectedToFrequency();
+        updated.alertFrequency = this.alertFrequency;
+        const alertChanged = this.isAlert !== this.task.isAlert ||
+          this.alertStartTime !== this.task.alertStartTime ||
+          this.alertFrequency !== this.task.alertFrequency;
+        if (alertChanged) {
           await this.homeStore.updateTaskAlert(this.taskId, this.isAlert, this.alertStartTime, this.alertFrequency);
         }
       } else {

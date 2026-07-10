@@ -71,7 +71,19 @@ export default function numericCheckinTest() {
       const taskInfo = new TaskInfo(1, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '0.5', '', PickerType.NONE, '', '', false, false, 0, 0);
       const r = checkinTask(t, taskInfo);
       expect(r.isDone).assertTrue();
-      expect(r.finValue).assertEqual('1');
+      expect(r.finValue).assertEqual('1.5');
+      expect(canCheckin(r, taskInfo)).assertTrue();
+    });
+
+    it('value_completedTaskCanReachTwoHundredPercent', 0, () => {
+      const taskInfo = new TaskInfo(1, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '0.5', '', PickerType.NONE, '', '', false, false, 0, 0);
+      let r = new DayTaskInfo(1, '20260101', 1, '1', '1', true);
+
+      r = checkinTask(r, taskInfo);
+      r = checkinTask(r, taskInfo);
+
+      expect(r.isDone).assertTrue();
+      expect(r.finValue).assertEqual('2');
     });
   });
 
@@ -98,7 +110,7 @@ export default function numericCheckinTest() {
       const taskInfo = new TaskInfo(3, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '1', '', PickerType.NONE, '', '', false, false, 0, 0);
       const r = checkinTask(t, taskInfo);
       expect(r.isDone).assertTrue();
-      expect(canCheckin(r)).assertFalse();
+      expect(canCheckin(r, taskInfo)).assertTrue();
     });
   });
 

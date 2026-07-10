@@ -66,7 +66,7 @@ export struct TaskList {
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
 
-        if (dayTask.isDone) {
+        if (dayTask.isDone && !this.isNumericTask(dayTask.taskId)) {
           Text($r('app.string.was_done'))
             .fontSize(16)
             .fontColor($r('app.color.text_primary'))
@@ -175,6 +175,14 @@ export struct TaskList {
       return `${fin > 0 ? fin : '--'} / ${target} ${meta.unitText}`;
     }
     return `${dayTask.finValue || '--'} / ${dayTask.targetValue} ${meta.unitText}`;
+  }
+
+  private isNumericTask(taskId: number): boolean {
+    const task = this.homeStore.allTasks.find(t => t.taskId === taskId);
+    if (!task) {
+      return false;
+    }
+    return getTaskDisplayMeta(task).taskType === TaskType.VALUE;
   }
 
   private getProgressPercent(dayTask: DayTaskInfo): number {

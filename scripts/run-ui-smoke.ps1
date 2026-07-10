@@ -42,10 +42,10 @@ function Resolve-Hdc {
 }
 
 function Invoke-Hdc {
-  param([string[]]$Args)
-  & $script:Hdc -t $script:Device @Args
+  param([string[]]$HdcArgs)
+  & $script:Hdc -t $script:Device @HdcArgs
   if ($LASTEXITCODE -ne 0) {
-    throw "hdc failed: $($Args -join ' ')"
+    throw "hdc failed: $($HdcArgs -join ' ')"
   }
 }
 
@@ -66,16 +66,16 @@ function Save-Screen {
   param([string]$Name)
   $remote = "/data/local/tmp/$Name.png"
   $local = Join-Path $OutputPath "$Name.png"
-  Invoke-Hdc @("shell", "uitest", "screenCap", "-p", $remote)
-  Invoke-Hdc @("file", "recv", $remote, $local)
+  Invoke-Hdc -HdcArgs @("shell", "uitest", "screenCap", "-p", $remote) | Out-Null
+  Invoke-Hdc -HdcArgs @("file", "recv", $remote, $local) | Out-Null
 }
 
 function Save-Layout {
   param([string]$Name)
   $remote = "/data/local/tmp/$Name.json"
   $local = Join-Path $OutputPath "$Name.json"
-  Invoke-Hdc @("shell", "uitest", "dumpLayout", "-p", $remote)
-  Invoke-Hdc @("file", "recv", $remote, $local)
+  Invoke-Hdc -HdcArgs @("shell", "uitest", "dumpLayout", "-p", $remote) | Out-Null
+  Invoke-Hdc -HdcArgs @("file", "recv", $remote, $local) | Out-Null
   return $local
 }
 
@@ -100,9 +100,14 @@ function Assert-LayoutContains {
   }
 }
 
+function TextFromHex {
+  param([string[]]$CodePoints)
+  return -join ($CodePoints | ForEach-Object { [char][Convert]::ToInt32($_, 16) })
+}
+
 function Click-Point {
   param([int]$X, [int]$Y)
-  Invoke-Hdc @("shell", "uitest", "uiInput", "click", "$X", "$Y")
+  Invoke-Hdc -HdcArgs @("shell", "uitest", "uiInput", "click", "$X", "$Y") | Out-Null
   Start-Sleep -Milliseconds 800
 }
 
@@ -117,6 +122,13 @@ New-Item -ItemType Directory -Force -Path $OutputPath | Out-Null
 
 $script:Hdc = Resolve-Hdc
 $script:Device = Resolve-Device
+$TextHome = TextFromHex @("9996", "9875")
+$TextTaskList = TextFromHex @("4EFB", "52A1", "5217", "8868")
+$TextAddTask = TextFromHex @("6DFB", "52A0", "4EFB", "52A1")
+$TextCreateCustom = TextFromHex @("521B", "5EFA", "81EA", "5B9A", "4E49", "4E60", "60EF")
+$TextAchievement = TextFromHex @("6210", "5C31")
+$TextMine = TextFromHex @("6211", "7684")
+$TextProfile = TextFromHex @("4E2A", "4EBA", "8D44", "6599")
 
 Push-Location $ProjectRoot
 try {
@@ -146,29 +158,29 @@ try {
   Click-Tab 0 $bounds
   $homeLayout = Save-Layout "01-home"
   Save-Screen "01-home"
-  Assert-LayoutContains $homeLayout "首页"
-  Assert-LayoutContains $homeLayout "任务列表"
+  Assert-LayoutContains $homeLayout $TextHome
+  Assert-LayoutContains $homeLayout $TextTaskList
 
   $addX = [int]($bounds.Width / 2)
   $addY = [int]($bounds.Height - 465)
   Click-Point $addX $addY
   $addLayout = Save-Layout "02-add-task"
   Save-Screen "02-add-task"
-  Assert-LayoutContains $addLayout "添加任务"
-  Assert-LayoutContains $addLayout "创建自定义习惯"
-  Invoke-Hdc @("shell", "uitest", "uiInput", "keyEvent", "Back")
+  Assert-LayoutContains $addLayout $TextAddTask
+  Assert-LayoutContains $addLayout $TextCreateCustom
+  Invoke-Hdc -HdcArgs @("shell", "uitest", "uiInput", "keyEvent", "Back") | Out-Null
   Start-Sleep -Milliseconds 800
 
   Click-Tab 1 $bounds
   $achievementLayout = Save-Layout "03-achievement"
   Save-Screen "03-achievement"
-  Assert-LayoutContains $achievementLayout "成就"
+  Assert-LayoutContains $achievementLayout $TextAchievement
 
   Click-Tab 2 $bounds
   $mineLayout = Save-Layout "04-mine"
   Save-Screen "04-mine"
-  Assert-LayoutContains $mineLayout "我的"
-  Assert-LayoutContains $mineLayout "个人资料"
+  Assert-LayoutContains $mineLayout $TextMine
+  Assert-LayoutContains $mineLayout $TextProfile
 
   Write-Output "UI smoke passed. Artifacts: $OutputPath"
 }

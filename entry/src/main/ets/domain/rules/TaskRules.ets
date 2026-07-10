@@ -9,8 +9,11 @@ import { TaskInfo } from '../models/TaskInfo';
 /**
  * 判断任务是否可以打卡
  */
-export function canCheckin(task: DayTaskInfo): boolean {
-  return !task.isDone;
+export function canCheckin(task: DayTaskInfo, taskInfo?: TaskInfo): boolean {
+  if (!task.isDone) {
+    return true;
+  }
+  return taskInfo !== undefined && taskInfo.taskType === TaskType.VALUE;
 }
 
 /**
@@ -22,7 +25,7 @@ export function canCheckin(task: DayTaskInfo): boolean {
  * @param taskInfo 全局任务配置（用于获取 taskType 和 step）
  */
 export function checkinTask(dayTask: DayTaskInfo, taskInfo: TaskInfo): DayTaskInfo {
-  if (dayTask.isDone) {
+  if (dayTask.isDone && taskInfo.taskType !== TaskType.VALUE) {
     return dayTask; // 已完成不重复打卡
   }
 
@@ -45,7 +48,6 @@ export function checkinTask(dayTask: DayTaskInfo, taskInfo: TaskInfo): DayTaskIn
       result.finValue = newFin.toString();
       if (newFin >= target) {
         result.isDone = true;
-        result.finValue = dayTask.targetValue;
       }
       break;
   }

@@ -85,10 +85,9 @@ export struct MinePage {
                 .fontColor($r('app.color.text_primary'))
                 .layoutWeight(1)
 
-              Image($r('app.media.ic_right_grey'))
-                .width(16)
-                .height(16)
-                .fillColor($r('app.color.text_hint'))
+              SymbolGlyph($r('sys.symbol.chevron_right'))
+                .fontSize(20)
+                .fontColor([$r('app.color.text_hint')])
             }
             .width('100%')
             .height(56)

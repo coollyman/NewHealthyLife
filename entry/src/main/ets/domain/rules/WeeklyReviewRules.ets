@@ -98,16 +98,14 @@ export function generateWeeklyReview(
     }
   });
 
-  // 获取任务名称
+  // 获取任务名称（domain 层无法访问 resourceManager，存 taskId 供 UI 层解析）
   if (bestTaskId >= 0) {
-    const catalog = getTaskCatalogItem(bestTaskId);
     review.mostStableTaskId = bestTaskId;
-    review.mostStableTaskName = catalog ? catalog.name?.id?.toString() ?? `任务${bestTaskId}` : `任务${bestTaskId}`;
+    review.mostStableTaskName = `任务${bestTaskId}`;
   }
   if (worstTaskId >= 0 && worstTaskId !== bestTaskId) {
-    const catalog = getTaskCatalogItem(worstTaskId);
     review.mostMissedTaskId = worstTaskId;
-    review.mostMissedTaskName = catalog ? catalog.name?.id?.toString() ?? `任务${worstTaskId}` : `任务${worstTaskId}`;
+    review.mostMissedTaskName = `任务${worstTaskId}`;
   }
 
   // 生成建议

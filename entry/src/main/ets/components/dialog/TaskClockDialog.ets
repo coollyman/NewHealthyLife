@@ -40,7 +40,7 @@ struct TaskClockDialog {
         .padding({ left: 28 })
         .margin({ top: 6 })
 
-      Button(this.dayTask.isDone ? $r('app.string.was_done') : $r('app.string.clock_in'))
+      Button(this.getButtonText())
         .type(ButtonType.Capsule)
         .backgroundColor($r('app.color.task_clock_bg_color'))
         .fontColor('#FFFFFF')
@@ -49,7 +49,7 @@ struct TaskClockDialog {
         .height(48)
         .margin({ top: 20 })
         .onClick(() => {
-          if (!this.dayTask.isDone) {
+          if (this.canContinueCheckin()) {
             this.onConfirm();
           }
           this.controller.close();
@@ -89,7 +89,7 @@ struct TaskClockDialog {
         .textAlign(TextAlign.Center)
         .margin({ top: 8 })
 
-      Button(this.dayTask.isDone ? $r('app.string.was_done') : $r('app.string.clock_in'))
+      Button(this.getButtonText())
         .type(ButtonType.Capsule)
         .backgroundColor($r('app.color.text_font_color'))
         .fontColor('#FFFFFF')
@@ -98,7 +98,7 @@ struct TaskClockDialog {
         .height(48)
         .margin({ top: 28 })
         .onClick(() => {
-          if (!this.dayTask.isDone) {
+          if (this.canContinueCheckin()) {
             this.onConfirm();
           }
           this.controller.close();
@@ -116,10 +116,6 @@ struct TaskClockDialog {
       return true;
     }
     const meta = getTaskDisplayMeta(task);
-    // 预设任务跑步用背景布局，其余用图标布局
-    if (meta.isPreset && this.dayTask.taskId === 6) {
-      return false;
-    }
     return true;
   }
 
@@ -176,6 +172,22 @@ struct TaskClockDialog {
       return `当前: ${fin}/${target}，每次+${step}`;
     }
     return `目标: ${this.dayTask.targetValue}`;
+  }
+
+  private canContinueCheckin(): boolean {
+    if (!this.dayTask.isDone) {
+      return true;
+    }
+    const task = this.homeStore.allTasks.find(t => t.taskId === this.dayTask.taskId);
+    if (!task) {
+      return false;
+    }
+    const meta = getTaskDisplayMeta(task);
+    return meta.taskType === TaskType.VALUE;
+  }
+
+  private getButtonText(): Resource {
+    return this.canContinueCheckin() ? $r('app.string.clock_in') : $r('app.string.was_done');
   }
 }
 

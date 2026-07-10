@@ -6,7 +6,7 @@ import { AppConstants } from '../../domain/constants/AppConstants';
  * 月视图组件
  * 支持跨月浏览：用户可切换上一月/下一月查看历史完成情况
  * 浏览月份不会改变首页 selectedDate，仅当点击日期时才选中并返回
- * 完成状态视觉区分：全部完成(金色勋章)，其余状态使用灰色勋章
+ * 完成状态视觉区分：复用首页周历的完成状态勋章
  */
 @Component
 export struct MonthView {
@@ -98,7 +98,7 @@ export struct MonthView {
         .fontSize(16)
         .fontColor(this.isCurrentMonth(date) ? $r('app.color.text_primary') : $r('app.color.text_hint'))
         .fontWeight(this.isSelected(date) ? FontWeight.Bold : FontWeight.Regular)
-        .margin({ bottom: 4 })
+        .margin({ bottom: 2 })
 
       // 完成状态标识
       this.statusIndicator(date)
@@ -114,26 +114,32 @@ export struct MonthView {
 
   /**
    * 完成状态指示器：
-   * - 全部完成：金色勋章
-   * - 其他状态：灰色勋章
+   * - 全部完成/补救完成：金色完成勋章
+   * - 部分完成：半完成勋章
+   * - 未完成：未完成勋章
+   * - 无记录：留空
    */
   @Builder
   statusIndicator(date: string) {
-    if (this.getStatus(date) === 3) {
-      Image($r('app.media.ic_badge_3_on'))
-        .width(14)
-        .height(14)
+    if (this.getStatus(date) === 3 || this.getStatus(date) === 4) {
+      Image($r('app.media.ic_home_all_done'))
+        .width(24)
+        .height(24)
         .objectFit(ImageFit.Contain)
-    } else if (this.getStatus(date) === 4) {
-      Image($r('app.media.ic_badge_3_off'))
-        .width(14)
-        .height(14)
+    } else if (this.getStatus(date) === 2) {
+      Image($r('app.media.ic_home_half_done'))
+        .width(24)
+        .height(24)
+        .objectFit(ImageFit.Contain)
+    } else if (this.getStatus(date) === 1) {
+      Image($r('app.media.ic_home_undone'))
+        .width(24)
+        .height(24)
         .objectFit(ImageFit.Contain)
     } else {
-      Image($r('app.media.ic_badge_3_off'))
-        .width(14)
-        .height(14)
-        .objectFit(ImageFit.Contain)
+      Blank()
+        .width(24)
+        .height(24)
     }
   }
 
