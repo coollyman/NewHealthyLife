@@ -4,6 +4,12 @@ import numericCheckinTest from './NumericCheckin.test';
 import regressionBugScanTest from './RegressionBugScan.test';
 import homeStoreFlowTest from './HomeStoreFlow.test';
 import persistenceSemanticsTest from './PersistenceSemantics.test';
+import monthViewTest from './MonthView.test';
+import goalSuggestionTest from './GoalSuggestion.test';
+import recoveryTest from './Recovery.test';
+import achievementUpgradeTest from './AchievementUpgrade.test';
+import weeklyReviewTest from './WeeklyReview.test';
+import profileStoreTest from './ProfileStore.test';
 import { getDateOffset, compareDate, getThreeWeekWindow } from '../main/ets/domain/utils/DateUtils';
 import { DayInfo } from '../main/ets/domain/models/DayInfo';
 import { DayTaskInfo } from '../main/ets/domain/models/DayTaskInfo';
@@ -16,6 +22,12 @@ export default function testsuite() {
   regressionBugScanTest();
   homeStoreFlowTest();
   persistenceSemanticsTest();
+  monthViewTest();
+  goalSuggestionTest();
+  recoveryTest();
+  achievementUpgradeTest();
+  weeklyReviewTest();
+  profileStoreTest();
 
   describe('HistoryAndPreviewDates', () => {
     it('dateOffset_supportsHistoryAndFutureSelection', 0, () => {

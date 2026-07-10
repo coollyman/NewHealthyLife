@@ -1,4 +1,5 @@
 import { DayInfo } from '../models/DayInfo';
+import { RecoveryInfo } from '../models/RecoveryInfo';
 import { AppConstants } from '../constants/AppConstants';
 
 /**
@@ -9,17 +10,20 @@ export class ConsecutiveDaysState {
   currentConsecutiveDays: number;
   currentDayStatus: boolean;
   newlyUnlockedAchievement: number | null;
+  maxConsecutiveDaysBeforeCurrentDay: number;
 
   constructor(
     maxConsecutiveDays: number = 0,
     currentConsecutiveDays: number = 0,
     currentDayStatus: boolean = false,
-    newlyUnlockedAchievement: number | null = null
+    newlyUnlockedAchievement: number | null = null,
+    maxConsecutiveDaysBeforeCurrentDay: number = maxConsecutiveDays
   ) {
     this.maxConsecutiveDays = maxConsecutiveDays;
     this.currentConsecutiveDays = currentConsecutiveDays;
     this.currentDayStatus = currentDayStatus;
     this.newlyUnlockedAchievement = newlyUnlockedAchievement;
+    this.maxConsecutiveDaysBeforeCurrentDay = maxConsecutiveDaysBeforeCurrentDay;
   }
 }
 
@@ -45,7 +49,13 @@ export function onAllTasksCompleted(state: ConsecutiveDaysState): ConsecutiveDay
     // 同一天重复调用：幂等不增天数，同时清掉 newlyUnlockedAchievement，
     // 保证"只消费一次"语义——调用方第一次没 pop 就再次调用也不会重复触发。
     if (state.newlyUnlockedAchievement !== null) {
-      return new ConsecutiveDaysState(state.maxConsecutiveDays, state.currentConsecutiveDays, true, null);
+      return new ConsecutiveDaysState(
+        state.maxConsecutiveDays,
+        state.currentConsecutiveDays,
+        true,
+        null,
+        state.maxConsecutiveDaysBeforeCurrentDay
+      );
     }
     return state;
   }
@@ -61,24 +71,49 @@ export function onAllTasksCompleted(state: ConsecutiveDaysState): ConsecutiveDay
     }
   }
 
-  return new ConsecutiveDaysState(newMax, newCurrent, true, newlyUnlocked);
+  return new ConsecutiveDaysState(newMax, newCurrent, true, newlyUnlocked, state.maxConsecutiveDays);
 }
 
 /**
- * 新的一天初始化时，检查昨天是否全部完成
+ * 当天已被计为完成后，如果新增/启用目标导致今天不再 100%，撤销今天这一次计数。
+ * max 恢复到今天完成前的基线，保证成就页不会保留一次未最终达成的解锁。
+ */
+export function onCurrentDayCompletionRevoked(state: ConsecutiveDaysState): ConsecutiveDaysState {
+  if (!state.currentDayStatus) {
+    return state;
+  }
+
+  const restoredMax = Math.max(state.maxConsecutiveDaysBeforeCurrentDay, 0);
+  const restoredCurrent = Math.max(0, state.currentConsecutiveDays - 1);
+  return new ConsecutiveDaysState(restoredMax, restoredCurrent, false, null, restoredMax);
+}
+
+/**
+ * 新的一天初始化时，检查昨天是否全部完成。
+ * 如果昨天未 100% 但有补救记录，连续天数不中断。
+ *
+ * @param yesterdayInfo     昨天的 DayInfo（可能为 null）
+ * @param currentState      当前连续天数状态
+ * @param yesterdayRecovery 昨天的补救记录（可选，无则 null）
  */
 export function onNewDay(
   yesterdayInfo: DayInfo | null,
-  currentState: ConsecutiveDaysState
+  currentState: ConsecutiveDaysState,
+  yesterdayRecovery: RecoveryInfo | null = null
 ): ConsecutiveDaysState {
   if (yesterdayInfo !== null && !isAllTasksCompleted(yesterdayInfo)) {
-    return new ConsecutiveDaysState(currentState.maxConsecutiveDays, 0, false, null);
+    // 昨天未 100% 完成 — 检查是否有补救
+    const hasRecovery = yesterdayRecovery !== null && yesterdayRecovery.used;
+    if (!hasRecovery) {
+      return new ConsecutiveDaysState(currentState.maxConsecutiveDays, 0, false, null, currentState.maxConsecutiveDays);
+    }
   }
   return new ConsecutiveDaysState(
     currentState.maxConsecutiveDays,
     currentState.currentConsecutiveDays,
     false,
-    null
+    null,
+    currentState.maxConsecutiveDays
   );
 }
 
@@ -100,7 +135,8 @@ export function reconcileCurrentDayCompletion(
     currentState.maxConsecutiveDays,
     currentState.currentConsecutiveDays,
     true,
-    currentState.newlyUnlockedAchievement
+    currentState.newlyUnlockedAchievement,
+    currentState.maxConsecutiveDaysBeforeCurrentDay
   );
 }
 

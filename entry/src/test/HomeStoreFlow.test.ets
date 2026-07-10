@@ -7,7 +7,8 @@ import {
   FakeDayInfoRepo,
   FakeDayTaskRepo,
   FakePrefRepo,
-  FakeFormService
+  FakeFormService,
+  FakeRecoveryRepo
 } from './fakes/FakeRepositories';
 
 /**
@@ -23,7 +24,8 @@ function makeDeps(): HomeStoreDeps {
     new FakeDayInfoRepo(),
     new FakeDayTaskRepo(),
     new FakePrefRepo(),
-    new FakeFormService()
+    new FakeFormService(),
+    new FakeRecoveryRepo()
   );
 }
 
@@ -209,6 +211,72 @@ export default function homeStoreFlowTest() {
       }
       // 全部完成 → +1
       expect(store2.consecutiveState.currentConsecutiveDays).assertEqual(1);
+    });
+
+    it('enableTask_afterAllDone_revokesTodayCompletionUntilNewTaskDone', 0, async () => {
+      const deps2 = makeDeps();
+      const store2 = makeDefaultStore(deps2);
+      await store2.initAppData();
+      await store2.enableTask(3); // 微笑 ONCE
+
+      const smile = store2.dayTasks.find(t => t.taskId === 3);
+      if (smile) {
+        await store2.checkin(smile.id);
+      }
+      expect(store2.dayInfo.finTaskNum).assertEqual(1);
+      expect(store2.dayInfo.targetTaskNum).assertEqual(1);
+      expect(store2.consecutiveState.currentConsecutiveDays).assertEqual(1);
+      expect(store2.consecutiveState.maxConsecutiveDays).assertEqual(1);
+      expect(store2.consecutiveState.currentDayStatus).assertTrue();
+
+      await store2.enableTask(0); // 早起新增为今天目标
+      expect(store2.dayInfo.finTaskNum).assertEqual(1);
+      expect(store2.dayInfo.targetTaskNum).assertEqual(2);
+      expect(store2.consecutiveState.currentConsecutiveDays).assertEqual(0);
+      expect(store2.consecutiveState.maxConsecutiveDays).assertEqual(0);
+      expect(store2.consecutiveState.currentDayStatus).assertFalse();
+
+      const early = store2.dayTasks.find(t => t.taskId === 0);
+      if (early) {
+        await store2.checkin(early.id);
+      }
+      expect(store2.dayInfo.finTaskNum).assertEqual(2);
+      expect(store2.dayInfo.targetTaskNum).assertEqual(2);
+      expect(store2.consecutiveState.currentConsecutiveDays).assertEqual(1);
+      expect(store2.consecutiveState.maxConsecutiveDays).assertEqual(1);
+      expect(store2.consecutiveState.currentDayStatus).assertTrue();
+    });
+
+    it('enableTask_afterRecovery_keepsRecoveredStreak', 0, async () => {
+      const deps2 = makeDeps();
+      const store2 = makeDefaultStore(deps2);
+      await store2.initAppData();
+      await store2.enableTask(0);
+      await store2.enableTask(2);
+      await store2.enableTask(3);
+      await store2.enableTask(4);
+      await store2.enableTask(5);
+
+      const completedTaskIds: number[] = [0, 2, 3, 4];
+      for (const taskId of completedTaskIds) {
+        const task = store2.dayTasks.find(t => t.taskId === taskId);
+        if (task) {
+          await store2.checkin(task.id);
+        }
+      }
+
+      expect(store2.dayInfo.finTaskNum).assertEqual(4);
+      expect(store2.dayInfo.targetTaskNum).assertEqual(5);
+      expect(await store2.canUseRecoveryToday()).assertTrue();
+      expect(await store2.useRecoveryToday()).assertTrue();
+      expect(store2.consecutiveState.currentConsecutiveDays).assertEqual(1);
+      expect(store2.consecutiveState.currentDayStatus).assertTrue();
+
+      await store2.enableTask(6);
+      expect(store2.dayInfo.finTaskNum).assertEqual(4);
+      expect(store2.dayInfo.targetTaskNum).assertEqual(6);
+      expect(store2.consecutiveState.currentConsecutiveDays).assertEqual(1);
+      expect(store2.consecutiveState.currentDayStatus).assertTrue();
     });
   });
 

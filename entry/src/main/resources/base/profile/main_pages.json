@@ -2,6 +2,7 @@
   "src": [
     "pages/Index",
     "pages/AddTaskPage",
-    "pages/EditTaskPage"
+    "pages/EditTaskPage",
+    "pages/ProfileEditPage"
   ]
 }

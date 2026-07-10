@@ -3,7 +3,9 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { DatabaseHelper } from '../data/db/DatabaseHelper';
 import { PreferencesRepository } from '../data/prefs/PreferencesRepository';
+import { ProfileRepository } from '../data/prefs/ProfileRepository';
 import { HomeStore } from '../viewmodel/HomeStore';
+import { ProfileStore } from '../viewmodel/ProfileStore';
 
 const DOMAIN = 0x0000;
 
@@ -44,6 +46,12 @@ export default class EntryAbility extends UIAbility {
     const homeStore = new HomeStore();
     await homeStore.initAppData();
     AppStorage.setOrCreate<HomeStore>('homeStore', homeStore);
+
+    const profileRepo = ProfileRepository.getInstance();
+    await profileRepo.init(this.context);
+    const profileStore = new ProfileStore();
+    await profileStore.init(this.context);
+    AppStorage.setOrCreate<ProfileStore>('profileStore', profileStore);
   }
 
   private loadContent(windowStage: window.WindowStage): void {

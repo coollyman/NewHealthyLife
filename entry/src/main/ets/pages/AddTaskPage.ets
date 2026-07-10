@@ -34,15 +34,12 @@ struct AddTaskPage {
           .fontSize(20)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
-          .layoutWeight(1)
-          .textAlign(TextAlign.Center)
-
-        Blank()
-          .width(24)
+          .margin({ left: 8 })
       }
       .width('100%')
       .height(56)
       .padding({ left: 16, right: 16 })
+      .alignItems(VerticalAlign.Center)
 
       // 任务列表
       List({ space: 1 }) {

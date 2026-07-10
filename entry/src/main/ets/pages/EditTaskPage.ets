@@ -3,6 +3,8 @@ import { promptAction } from '@kit.ArkUI';
 import { HomeStore, isHomeStoreDataReady } from '../viewmodel/HomeStore';
 import { TaskInfo } from '../domain/models/TaskInfo';
 import { getTaskCatalogItem, PickerType, TaskType } from '../domain/constants/TaskCatalog';
+import { GoalSuggestionCard } from '../components/home/GoalSuggestionCard';
+import { GoalSuggestion, GoalSuggestionType } from '../domain/rules/GoalSuggestionRules';
 
 /**
  * 编辑任务页
@@ -23,6 +25,7 @@ struct EditTaskPage {
   @State alertStartTime: string = '08:00';
   @State alertFrequency: string = '1,2,3,4,5,6,7';
   @State selectedWeekDays: boolean[] = [true, true, true, true, true, true, true];
+  @State goalSuggestion: GoalSuggestion = new GoalSuggestion();
   private taskId: number = 0;
 
   async aboutToAppear(): Promise<void> {
@@ -51,11 +54,19 @@ struct EditTaskPage {
       const idx = this.pickerRange.indexOf(this.targetValue);
       this.pickerSelected = idx >= 0 ? idx : 0;
     }
+
+    // 加载目标建议（仅数值类任务）
+    if (this.pickerType === PickerType.TEXT && this.pickerRange.length > 1) {
+      try {
+        this.goalSuggestion = await this.homeStore.getGoalSuggestion(this.taskId);
+      } catch (e) {
+        console.error('EditTaskPage getGoalSuggestion error: ' + e);
+      }
+    }
   }
 
   build() {
-    Scroll() {
-      Column() {
+    Column() {
         // 标题栏
         Row() {
           SymbolGlyph($r('sys.symbol.chevron_left'))
@@ -69,16 +80,15 @@ struct EditTaskPage {
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.text_primary'))
-            .layoutWeight(1)
-            .textAlign(TextAlign.Center)
-
-          Blank()
-            .width(24)
+            .margin({ left: 8 })
         }
         .width('100%')
         .height(56)
         .padding({ left: 16, right: 16 })
+        .alignItems(VerticalAlign.Center)
 
+        Scroll() {
+          Column() {
         // 启用开关
         Row() {
           Text($r('app.string.task_opened'))
@@ -138,6 +148,19 @@ struct EditTaskPage {
           .margin({ bottom: 8 })
         }
 
+        // 目标建议卡片
+        if (this.goalSuggestion.type !== GoalSuggestionType.NONE) {
+          GoalSuggestionCard({
+            suggestion: this.goalSuggestion,
+            onAccept: () => {
+              this.acceptGoalSuggestion();
+            },
+            onDismiss: () => {
+              this.goalSuggestion = new GoalSuggestion();
+            }
+          })
+        }
+
         // 跑步任务提醒设置
         if (this.isRunTask) {
           this.alertSection()
@@ -154,14 +177,20 @@ struct EditTaskPage {
           .onClick(() => {
             this.onComplete();
           })
-      }
-      .width('100%')
+          }
+          .width('100%')
+          .justifyContent(FlexAlign.Start)
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .align(Alignment.TopStart)
+        .scrollBar(BarState.Off)
+        .edgeEffect(EdgeEffect.Spring)
     }
     .width('100%')
     .height('100%')
+    .justifyContent(FlexAlign.Start)
     .backgroundColor($r('app.color.bg_page'))
-    .scrollBar(BarState.Off)
-    .edgeEffect(EdgeEffect.Spring)
   }
 
   @Builder
@@ -289,14 +318,27 @@ struct EditTaskPage {
     this.alertFrequency = parts.join(',');
   }
 
+  private async acceptGoalSuggestion(): Promise<void> {
+    const suggested = this.goalSuggestion.suggestedValue;
+    if (!suggested || suggested === this.targetValue) {
+      this.goalSuggestion = new GoalSuggestion();
+      return;
+    }
+    this.targetValue = suggested;
+    const idx = this.pickerRange.indexOf(suggested);
+    if (idx >= 0) {
+      this.pickerSelected = idx;
+    }
+    this.goalSuggestion = new GoalSuggestion();
+    promptAction.showToast({ message: '已采用建议，点击完成保存' });
+  }
+
   private async onComplete() {
     try {
       // 更新目标值
       if (this.targetValue !== this.task.targetValue) {
         await this.homeStore.updateTaskTarget(this.taskId, this.targetValue);
       }
-
-      // 启用/停用
       if (this.isOpen && !this.task.isOpen) {
         await this.homeStore.enableTask(this.taskId);
       } else if (!this.isOpen && this.task.isOpen) {

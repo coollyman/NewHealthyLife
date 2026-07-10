@@ -143,6 +143,23 @@ export function getFirstDateOfMonth(dateStr: string): string {
 }
 
 /**
+ * 获取指定日期偏移若干月后同一天的 yyyyMMdd
+ * 目标月天数不足时截取到月末（例：20260331 -1 → 20260228）
+ * @param dateStr 基准日期 yyyyMMdd
+ * @param monthOffset 月偏移量（正为未来，负为过去）
+ */
+export function getMonthOffset(dateStr: string, monthOffset: number): string {
+  const date = parseDate(dateStr);
+  const originalDay = date.getDate();
+  // 先定位到目标年月的第 1 天，再 clamp 到目标月最大天数
+  date.setDate(1);
+  date.setMonth(date.getMonth() + monthOffset);
+  const targetMonthMaxDays = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  date.setDate(Math.min(originalDay, targetMonthMaxDays));
+  return formatDate(date);
+}
+
+/**
  * 构建指定日期所在月份的日历网格日期列表
  * 返回的列表以周一为起始，包含前一个月的尾部和下一个月的开头
  * 始终返回 42 天（6 行 × 7 列）

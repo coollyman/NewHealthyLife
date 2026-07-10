@@ -5,13 +5,13 @@
         "name": "default",
         "type": "HarmonyOS",
         "material": {
-          "certpath": "C:\\Users\\linxiaoyi\\.ohos\\config\\default_NewHealthyLife_9Uj2Kg7LQ29ppEnysaRrTM459Ec42teqpyXUapnTpUQ=.cer",
+          "certpath": "C:\\Users\\Lin xiaoyi\\.ohos\\config\\default_NewHealthyLife_aexro-Am5Mal3ihnG6uNu_D2j6ar7T_kpNuSyAGSNpw=.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001BFC67EA8D66C7ABFC9BD8B82E002E1580FB1EFAE95CA7595032CA55013B6FFA42D88EAE6E6D5D50",
-          "profile": "C:\\Users\\linxiaoyi\\.ohos\\config\\default_NewHealthyLife_9Uj2Kg7LQ29ppEnysaRrTM459Ec42teqpyXUapnTpUQ=.p7b",
+          "keyPassword": "0000001B9DE694CBBAA67E4FBAA37C2A289A5F07A288A94A0F4746AF01B9622EE19EC6CD0EF1DAD0BD5D4D",
+          "profile": "C:\\Users\\Lin xiaoyi\\.ohos\\config\\default_NewHealthyLife_aexro-Am5Mal3ihnG6uNu_D2j6ar7T_kpNuSyAGSNpw=.p7b",
           "signAlg": "SHA256withECDSA",
-          "storeFile": "C:\\Users\\linxiaoyi\\.ohos\\config\\default_NewHealthyLife_9Uj2Kg7LQ29ppEnysaRrTM459Ec42teqpyXUapnTpUQ=.p12",
-          "storePassword": "0000001B096C2CA923301D7A0FB622E8BD898F7194F87DB5E6AD4B477B7DB73460820E26E0C48BE9959B61"
+          "storeFile": "C:\\Users\\Lin xiaoyi\\.ohos\\config\\default_NewHealthyLife_aexro-Am5Mal3ihnG6uNu_D2j6ar7T_kpNuSyAGSNpw=.p12",
+          "storePassword": "0000001B82E4726C1ACF279028154ECFE35AB085FED4A4C2085744E27B73BC82A194C032228A26B1643FE4"
         }
       }
     ],

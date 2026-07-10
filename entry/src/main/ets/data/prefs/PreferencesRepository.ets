@@ -38,8 +38,9 @@ export class PreferencesRepository implements IPrefRepository {
     const maxDays = await p.get(AppConstants.MAX_CONSECUTIVE_DAYS, 0) as number;
     const currentDays = await p.get(AppConstants.CURRENT_CONSECUTIVE_DAYS, 0) as number;
     const dayStatus = await p.get(AppConstants.CURRENT_DAY_STATUS, false) as boolean;
+    const baselineMax = await p.get(AppConstants.MAX_CONSECUTIVE_DAYS_BEFORE_CURRENT_DAY, maxDays) as number;
 
-    return new ConsecutiveDaysState(maxDays, currentDays, dayStatus, null);
+    return new ConsecutiveDaysState(maxDays, currentDays, dayStatus, null, baselineMax);
   }
 
   /**
@@ -50,6 +51,7 @@ export class PreferencesRepository implements IPrefRepository {
     await p.put(AppConstants.MAX_CONSECUTIVE_DAYS, state.maxConsecutiveDays);
     await p.put(AppConstants.CURRENT_CONSECUTIVE_DAYS, state.currentConsecutiveDays);
     await p.put(AppConstants.CURRENT_DAY_STATUS, state.currentDayStatus);
+    await p.put(AppConstants.MAX_CONSECUTIVE_DAYS_BEFORE_CURRENT_DAY, state.maxConsecutiveDaysBeforeCurrentDay);
     await p.flush();
   }
 }

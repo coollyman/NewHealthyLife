@@ -3,6 +3,34 @@
     {
       "name": "start_window_background",
       "value": "#000000"
+    },
+    {
+      "name": "status_all_done",
+      "value": "#3B82F6"
+    },
+    {
+      "name": "status_partial_done",
+      "value": "#FFB340"
+    },
+    {
+      "name": "status_not_done",
+      "value": "#FF6B6B"
+    },
+    {
+      "name": "status_no_record",
+      "value": "#33FFFFFF"
+    },
+    {
+      "name": "task_progress_track",
+      "value": "#263241"
+    },
+    {
+      "name": "task_progress_active",
+      "value": "#6EA2FF"
+    },
+    {
+      "name": "task_progress_done",
+      "value": "#41D68A"
     }
   ]
 }

@@ -84,17 +84,7 @@ export struct TaskList {
       .height(44)
       .alignItems(VerticalAlign.Center)
 
-      Row() {
-        Row()
-          .width(`${this.getProgressPercent(dayTask)}%`)
-          .height(4)
-          .borderRadius(2)
-          .backgroundColor($r('app.color.text_font_color'))
-      }
-      .width('100%')
-      .height(4)
-      .borderRadius(2)
-      .backgroundColor($r('app.color.bg_page'))
+      this.progressBar(dayTask)
     }
     .width('100%')
     .height(70)
@@ -117,6 +107,25 @@ export struct TaskList {
         });
       }
     }))
+  }
+
+  @Builder
+  progressBar(dayTask: DayTaskInfo) {
+    Row() {
+      if (this.getProgressPercent(dayTask) > 0) {
+        Row()
+          .width(`${this.getProgressPercent(dayTask)}%`)
+          .height('100%')
+          .borderRadius(4)
+          .backgroundColor(this.getProgressColor(dayTask))
+      }
+    }
+    .width('100%')
+    .height(8)
+    .borderRadius(4)
+    .clip(true)
+    .backgroundColor($r('app.color.task_progress_track'))
+    .margin({ top: 8 })
   }
 
   private getTaskIcon(taskId: number): Resource {
@@ -168,6 +177,13 @@ export struct TaskList {
 
     const pct = Math.round(fin / target * 100);
     return Math.max(0, Math.min(100, pct));
+  }
+
+  private getProgressColor(dayTask: DayTaskInfo): Resource {
+    if (dayTask.isDone) {
+      return $r('app.color.task_progress_done');
+    }
+    return $r('app.color.task_progress_active');
   }
 
   private getUnitText(unit: Resource): string {

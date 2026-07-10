@@ -15,6 +15,13 @@
     { "name": "text_hint", "value": "#66000000" },
     { "name": "divider", "value": "#33000000" },
     { "name": "home_bg", "value": "#F1F3F5" },
-    { "name": "title_color", "value": "#E5000000" }
+    { "name": "title_color", "value": "#E5000000" },
+    { "name": "status_all_done", "value": "#0A59F7" },
+    { "name": "status_partial_done", "value": "#FF9F0A" },
+    { "name": "status_not_done", "value": "#E84026" },
+    { "name": "status_no_record", "value": "#33000000" },
+    { "name": "task_progress_track", "value": "#E8EEF7" },
+    { "name": "task_progress_active", "value": "#4A8CFF" },
+    { "name": "task_progress_done", "value": "#2ABF7A" }
   ]
 }

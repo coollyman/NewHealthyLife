@@ -18,6 +18,7 @@ export class DbSchema {
   static readonly TABLE_DAY: string = 'dayInfo';
   static readonly TABLE_DAY_TASK: string = 'dayTaskInfo';
   static readonly TABLE_FORM: string = 'formInfo';
+  static readonly TABLE_RECOVERY: string = 'recoveryInfo';
 
   // TaskInfo 表列
   static readonly TASK_COLUMNS: ColumnDef[] = [
@@ -55,6 +56,15 @@ export class DbSchema {
     { name: 'formDimension', type: 'INTEGER', notNull: true, primaryKey: false, autoIncrement: false }
   ];
 
+  // RecoveryInfo 表列
+  static readonly RECOVERY_COLUMNS: ColumnDef[] = [
+    { name: 'date', type: 'TEXT', notNull: true, primaryKey: true, autoIncrement: false },
+    { name: 'weekKey', type: 'TEXT', notNull: true, primaryKey: false, autoIncrement: false },
+    { name: 'used', type: 'INTEGER', notNull: true, primaryKey: false, autoIncrement: false },
+    { name: 'completionPercentAtUse', type: 'INTEGER', notNull: true, primaryKey: false, autoIncrement: false },
+    { name: 'createdAt', type: 'INTEGER', notNull: true, primaryKey: false, autoIncrement: false }
+  ];
+
   /**
    * 生成建表 SQL
    */
@@ -74,7 +84,8 @@ export class DbSchema {
       DbSchema.getCreateTableSql(DbSchema.TABLE_TASK, DbSchema.TASK_COLUMNS),
       DbSchema.getCreateTableSql(DbSchema.TABLE_DAY, DbSchema.DAY_COLUMNS),
       DbSchema.getCreateTableSql(DbSchema.TABLE_DAY_TASK, DbSchema.DAY_TASK_COLUMNS),
-      DbSchema.getCreateTableSql(DbSchema.TABLE_FORM, DbSchema.FORM_COLUMNS)
+      DbSchema.getCreateTableSql(DbSchema.TABLE_FORM, DbSchema.FORM_COLUMNS),
+      DbSchema.getCreateTableSql(DbSchema.TABLE_RECOVERY, DbSchema.RECOVERY_COLUMNS)
     ];
   }
 

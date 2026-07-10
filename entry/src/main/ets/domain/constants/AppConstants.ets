@@ -28,6 +28,15 @@ export class AppConstants {
   static readonly MAX_CONSECUTIVE_DAYS: string = 'maxConsecutiveDays';
   static readonly CURRENT_CONSECUTIVE_DAYS: string = 'currentConsecutiveDays';
   static readonly CURRENT_DAY_STATUS: string = 'currentDayStatus';
+  static readonly MAX_CONSECUTIVE_DAYS_BEFORE_CURRENT_DAY: string = 'maxConsecutiveDaysBeforeCurrentDay';
+
+  // Preferences 键名 — 个人资料
+  static readonly PROFILE_AVATAR_URI: string = 'profileAvatarUri';
+  static readonly PROFILE_NICKNAME: string = 'profileNickname';
+  static readonly PROFILE_GENDER: string = 'profileGender';
+  static readonly PROFILE_BIRTH_DATE: string = 'profileBirthDate';
+  static readonly PROFILE_HEIGHT_CM: string = 'profileHeightCm';
+  static readonly PROFILE_WEIGHT_KG: string = 'profileWeightKg';
 
   // 数据库
   static readonly DATABASE_NAME: string = 'HealthyLife.db';

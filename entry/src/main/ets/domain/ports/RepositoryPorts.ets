@@ -1,7 +1,9 @@
 import { TaskInfo } from '../models/TaskInfo';
 import { DayInfo } from '../models/DayInfo';
 import { DayTaskInfo } from '../models/DayTaskInfo';
+import { RecoveryInfo } from '../models/RecoveryInfo';
 import { ConsecutiveDaysState } from '../rules/ConsecutiveDaysRules';
+import { ProfileInfo } from '../models/ProfileInfo';
 
 /**
  * 任务配置仓储接口 — 可被内存假仓库替换以测 HomeStore 业务流
@@ -43,6 +45,25 @@ export interface IDayTaskRepository {
 export interface IPrefRepository {
   getConsecutiveState(): Promise<ConsecutiveDaysState>;
   saveConsecutiveState(state: ConsecutiveDaysState): Promise<void>;
+}
+
+/**
+ * 个人资料仓储接口
+ */
+export interface IProfileRepository {
+  init(context: Context): Promise<void>;
+  getProfile(): Promise<ProfileInfo>;
+  saveProfile(profile: ProfileInfo): Promise<void>;
+}
+
+/**
+ * 补救日仓储接口
+ */
+export interface IRecoveryRepository {
+  upsertRecovery(info: RecoveryInfo): Promise<void>;
+  getRecoveryByDate(date: string): Promise<RecoveryInfo | null>;
+  getRecoveryByWeek(weekKey: string): Promise<RecoveryInfo | null>;
+  getRecoveryListByDateRange(startDate: string, endDate: string): Promise<RecoveryInfo[]>;
 }
 
 /**

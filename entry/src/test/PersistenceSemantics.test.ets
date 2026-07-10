@@ -11,7 +11,8 @@ import {
   FakeDayInfoRepo,
   FakeDayTaskRepo,
   FakePrefRepo,
-  FakeFormService
+  FakeFormService,
+  FakeRecoveryRepo
 } from './fakes/FakeRepositories';
 
 /**
@@ -33,7 +34,8 @@ function makeDeps(): HomeStoreDeps {
     new FakeDayInfoRepo(),
     new FakeDayTaskRepo(),
     new FakePrefRepo(),
-    new FakeFormService()
+    new FakeFormService(),
+    new FakeRecoveryRepo()
   );
 }
 

@@ -1,13 +1,17 @@
 import { TaskInfo } from '../../main/ets/domain/models/TaskInfo';
 import { DayInfo } from '../../main/ets/domain/models/DayInfo';
 import { DayTaskInfo } from '../../main/ets/domain/models/DayTaskInfo';
+import { RecoveryInfo } from '../../main/ets/domain/models/RecoveryInfo';
 import { ConsecutiveDaysState } from '../../main/ets/domain/rules/ConsecutiveDaysRules';
+import { ProfileInfo, ProfileGender } from '../../main/ets/domain/models/ProfileInfo';
 import {
   ITaskRepository,
   IDayInfoRepository,
   IDayTaskRepository,
   IPrefRepository,
+  IProfileRepository,
   IFormService,
+  IRecoveryRepository,
   FormInfoLike
 } from '../../main/ets/domain/ports/RepositoryPorts';
 
@@ -218,7 +222,8 @@ export class FakePrefRepo implements IPrefRepository {
       this.state.maxConsecutiveDays,
       this.state.currentConsecutiveDays,
       this.state.currentDayStatus,
-      this.state.newlyUnlockedAchievement
+      this.state.newlyUnlockedAchievement,
+      this.state.maxConsecutiveDaysBeforeCurrentDay
     );
   }
 
@@ -227,7 +232,8 @@ export class FakePrefRepo implements IPrefRepository {
       state.maxConsecutiveDays,
       state.currentConsecutiveDays,
       state.currentDayStatus,
-      state.newlyUnlockedAchievement
+      state.newlyUnlockedAchievement,
+      state.maxConsecutiveDaysBeforeCurrentDay
     );
   }
 
@@ -277,5 +283,82 @@ export class FakeFormService implements IFormService {
 
   getUpdateCount(): number {
     return this.updateCount;
+  }
+}
+
+export class FakeProfileRepo implements IProfileRepository {
+  private profile: ProfileInfo = new ProfileInfo();
+  private initialized: boolean = false;
+
+  async init(context: Context): Promise<void> {
+    this.initialized = true;
+  }
+
+  async getProfile(): Promise<ProfileInfo> {
+    return new ProfileInfo(
+      this.profile.avatarUri,
+      this.profile.nickname,
+      this.profile.gender,
+      this.profile.birthDate,
+      this.profile.heightCm,
+      this.profile.weightKg
+    );
+  }
+
+  async saveProfile(profile: ProfileInfo): Promise<void> {
+    this.profile = new ProfileInfo(
+      profile.avatarUri,
+      profile.nickname,
+      profile.gender,
+      profile.birthDate,
+      profile.heightCm,
+      profile.weightKg
+    );
+  }
+
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+}
+
+export class FakeRecoveryRepo implements IRecoveryRepository {
+  private records: Map<string, RecoveryInfo> = new Map<string, RecoveryInfo>();
+
+  async upsertRecovery(info: RecoveryInfo): Promise<void> {
+    this.records.set(info.date, new RecoveryInfo(
+      info.date, info.weekKey, info.used, info.completionPercentAtUse, info.createdAt
+    ));
+  }
+
+  async getRecoveryByDate(date: string): Promise<RecoveryInfo | null> {
+    const r = this.records.get(date);
+    return r ? new RecoveryInfo(r.date, r.weekKey, r.used, r.completionPercentAtUse, r.createdAt) : null;
+  }
+
+  async getRecoveryByWeek(weekKey: string): Promise<RecoveryInfo | null> {
+    const values: RecoveryInfo[] = Array.from(this.records.values());
+    for (const r of values) {
+      if (r.weekKey === weekKey && r.used) {
+        return new RecoveryInfo(r.date, r.weekKey, r.used, r.completionPercentAtUse, r.createdAt);
+      }
+    }
+    return null;
+  }
+
+  async getRecoveryListByDateRange(startDate: string, endDate: string): Promise<RecoveryInfo[]> {
+    const result: RecoveryInfo[] = [];
+    const values: RecoveryInfo[] = Array.from(this.records.values());
+    for (const r of values) {
+      if (r.date >= startDate && r.date <= endDate) {
+        result.push(new RecoveryInfo(r.date, r.weekKey, r.used, r.completionPercentAtUse, r.createdAt));
+      }
+    }
+    result.sort((a: RecoveryInfo, b: RecoveryInfo): number => a.date < b.date ? -1 : (a.date > b.date ? 1 : 0));
+    return result;
+  }
+
+  /** 测试辅助 */
+  rawCount(): number {
+    return this.records.size;
   }
 }

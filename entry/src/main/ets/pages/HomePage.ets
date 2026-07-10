@@ -2,6 +2,7 @@ import { HomeStore } from '../viewmodel/HomeStore';
 import { TaskList } from '../components/home/TaskList';
 import { ProgressHeader } from '../components/home/ProgressHeader';
 import { MonthView } from '../components/home/MonthView';
+import { RecoveryPrompt } from '../components/home/RecoveryPrompt';
 import { router } from '@kit.ArkUI';
 
 /**
@@ -26,6 +27,9 @@ export struct HomePage {
             .zIndex(1)
 
           ProgressHeader({ homeStore: this.homeStore })
+
+          // 补救提示（仅当符合条件时显示）
+          RecoveryPrompt({ homeStore: this.homeStore })
 
           Text($r('app.string.task_list'))
             .fontSize(20)

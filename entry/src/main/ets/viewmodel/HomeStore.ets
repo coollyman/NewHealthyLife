@@ -1,21 +1,24 @@
 import { TaskInfo } from '../domain/models/TaskInfo';
 import { DayInfo } from '../domain/models/DayInfo';
 import { DayTaskInfo } from '../domain/models/DayTaskInfo';
+import { RecoveryInfo } from '../domain/models/RecoveryInfo';
 import { TaskInfoRepository } from '../data/db/TaskInfoRepository';
 import { DayInfoRepository } from '../data/db/DayInfoRepository';
 import { DayTaskRepository } from '../data/db/DayTaskRepository';
+import { RecoveryRepository } from '../data/db/RecoveryRepository';
 import { PreferencesRepository } from '../data/prefs/PreferencesRepository';
 import { FormService } from '../services/FormService';
 import { checkinTask, canCheckin } from '../domain/rules/TaskRules';
 import {
   isAllTasksCompleted,
   onAllTasksCompleted,
+  onCurrentDayCompletionRevoked,
   onNewDay,
   reconcileCurrentDayCompletion,
   ConsecutiveDaysState
 } from '../domain/rules/ConsecutiveDaysRules';
 import { initializeDayData, ensureDayTaskSnapshots, recalculateDayInfo, removeInactiveTaskFromDay } from '../domain/rules/DayInitRules';
-import { getToday, getDateOffset, compareDate, getMonthGrid, getMondayOfWeek } from '../domain/utils/DateUtils';
+import { getToday, getDateOffset, compareDate, getMonthGrid, getMondayOfWeek, getMonthOffset, getYearMonth } from '../domain/utils/DateUtils';
 import { getTaskCatalogItem } from '../domain/constants/TaskCatalog';
 import { createOrUpdateReminder, cancelReminder, hasNotificationPermission, requestNotificationPermission } from '../services/ReminderService';
 import {
@@ -23,8 +26,17 @@ import {
   IDayInfoRepository,
   IDayTaskRepository,
   IPrefRepository,
-  IFormService
+  IFormService,
+  IRecoveryRepository
 } from '../domain/ports/RepositoryPorts';
+import { suggestGoalAdjustment, GoalSuggestion } from '../domain/rules/GoalSuggestionRules';
+import {
+  canUseRecovery,
+  createRecoveryRecord,
+  getWeekKey,
+  isDayCompletedForStreak
+} from '../domain/rules/RecoveryRules';
+import { generateWeeklyReview, WeeklyReview } from '../domain/rules/WeeklyReviewRules';
 
 export function isHomeStoreDataReady(tasks: TaskInfo[] | undefined | null): boolean {
   return !!tasks && tasks.length > 0;
@@ -49,19 +61,22 @@ export class HomeStoreDeps {
   dayTaskRepo: IDayTaskRepository;
   prefRepo: IPrefRepository;
   formService: IFormService;
+  recoveryRepo: IRecoveryRepository;
 
   constructor(
     taskRepo: ITaskRepository,
     dayRepo: IDayInfoRepository,
     dayTaskRepo: IDayTaskRepository,
     prefRepo: IPrefRepository,
-    formService: IFormService
+    formService: IFormService,
+    recoveryRepo: IRecoveryRepository
   ) {
     this.taskRepo = taskRepo;
     this.dayRepo = dayRepo;
     this.dayTaskRepo = dayTaskRepo;
     this.prefRepo = prefRepo;
     this.formService = formService;
+    this.recoveryRepo = recoveryRepo;
   }
 }
 
@@ -82,15 +97,22 @@ export class HomeStore {
   consecutiveState: ConsecutiveDaysState = new ConsecutiveDaysState();
   // 月视图是否激活
   isMonthView: boolean = false;
+  // 月视图浏览日期 — 跨月切换时更新，不影响 selectedDate
+  monthViewDate: string = getToday();
   // 月视图数据：日期 -> 完成状态（0=无记录, 1=未完成, 2=部分完成, 3=全部完成）
   monthViewData: Map<string, number> = new Map<string, number>();
+  // 月视图是否正在加载 — 防止快速切换时请求乱序
+  isMonthLoading: boolean = false;
   calendarDayStatus: Map<string, number> = new Map<string, number>();
+  // 今天是否已使用补救
+  todayRecovery: RecoveryInfo | null = null;
 
   private taskRepo: ITaskRepository;
   private dayRepo: IDayInfoRepository;
   private dayTaskRepo: IDayTaskRepository;
   private prefRepo: IPrefRepository;
   private formService: IFormService;
+  private recoveryRepo: IRecoveryRepository;
 
   /**
    * 生产构造 — 使用真实仓储实现
@@ -101,6 +123,7 @@ export class HomeStore {
     this.dayTaskRepo = new DayTaskRepository();
     this.prefRepo = PreferencesRepository.getInstance();
     this.formService = new FormService();
+    this.recoveryRepo = new RecoveryRepository();
   }
 
   /**
@@ -113,13 +136,17 @@ export class HomeStore {
     this.allTasks = [];
     this.consecutiveState = new ConsecutiveDaysState();
     this.isMonthView = false;
+    this.monthViewDate = getToday();
     this.monthViewData = new Map<string, number>();
+    this.isMonthLoading = false;
     this.calendarDayStatus = new Map<string, number>();
+    this.todayRecovery = null;
     this.taskRepo = deps.taskRepo;
     this.dayRepo = deps.dayRepo;
     this.dayTaskRepo = deps.dayTaskRepo;
     this.prefRepo = deps.prefRepo;
     this.formService = deps.formService;
+    this.recoveryRepo = deps.recoveryRepo;
   }
 
   /**
@@ -144,13 +171,17 @@ export class HomeStore {
     const today = getToday();
     const yesterday = getDateOffset(today, -1);
     const yesterdayInfo = await this.dayRepo.getDayInfo(yesterday);
-    this.consecutiveState = onNewDay(yesterdayInfo, this.consecutiveState);
+    const yesterdayRecovery = await this.recoveryRepo.getRecoveryByDate(yesterday);
+    this.consecutiveState = onNewDay(yesterdayInfo, this.consecutiveState, yesterdayRecovery);
     await this.prefRepo.saveConsecutiveState(this.consecutiveState);
 
     // 初始化今天的数据
     await this.initDayData(today);
     this.consecutiveState = reconcileCurrentDayCompletion(this.dayInfo, this.consecutiveState);
     await this.prefRepo.saveConsecutiveState(this.consecutiveState);
+
+    // 加载今天的补救记录
+    this.todayRecovery = await this.recoveryRepo.getRecoveryByDate(today);
 
     // 加载所有任务
     this.allTasks = await this.taskRepo.getAllTasks();
@@ -241,13 +272,10 @@ export class HomeStore {
     this.dayInfo = recalculateDayInfo(this.dayInfo, this.dayTasks, activeCount);
     await this.dayRepo.upsertDayInfo(this.dayInfo);
 
-    // 检查是否全部完成
-    if (isAllTasksCompleted(this.dayInfo)) {
-      this.consecutiveState = onAllTasksCompleted(this.consecutiveState);
-      await this.prefRepo.saveConsecutiveState(this.consecutiveState);
-    }
+    await this.syncTodayCompletionState(this.dayInfo);
 
     this.updateCalendarDayStatus(this.dayInfo);
+    this.updateMonthViewData(this.dayInfo);
 
     // 更新服务卡片
     await this.formService.updateAllForms(this.dayInfo, this.dayTasks);
@@ -283,6 +311,7 @@ export class HomeStore {
     }
 
     const todayData = await this.loadDayData(today);
+    await this.syncTodayCompletionState(todayData.dayInfo);
     if (this.selectedDate === today) {
       this.dayInfo = todayData.dayInfo;
       this.dayTasks = todayData.dayTasks;
@@ -291,6 +320,9 @@ export class HomeStore {
       this.dayInfo = selectedData.dayInfo;
       this.dayTasks = selectedData.dayTasks;
     }
+
+    this.updateCalendarDayStatus(todayData.dayInfo);
+    this.updateMonthViewData(todayData.dayInfo);
 
     await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks);
 
@@ -347,6 +379,7 @@ export class HomeStore {
       await this.dayTaskRepo.deleteDayTask(today, taskId);
     }
     const todayData = await this.loadDayData(today);
+    await this.syncTodayCompletionState(todayData.dayInfo);
 
     if (this.selectedDate === today) {
       this.dayInfo = todayData.dayInfo;
@@ -356,6 +389,9 @@ export class HomeStore {
       this.dayInfo = selectedData.dayInfo;
       this.dayTasks = selectedData.dayTasks;
     }
+
+    this.updateCalendarDayStatus(todayData.dayInfo);
+    this.updateMonthViewData(todayData.dayInfo);
 
     // 取消提醒
     if (task.reminderId !== -1) {
@@ -386,6 +422,7 @@ export class HomeStore {
     }
 
     const todayData = await this.loadDayData(today);
+    await this.syncTodayCompletionState(todayData.dayInfo);
     if (this.selectedDate === today) {
       this.dayInfo = todayData.dayInfo;
       this.dayTasks = todayData.dayTasks;
@@ -394,6 +431,9 @@ export class HomeStore {
       this.dayInfo = selectedData.dayInfo;
       this.dayTasks = selectedData.dayTasks;
     }
+
+    this.updateCalendarDayStatus(todayData.dayInfo);
+    this.updateMonthViewData(todayData.dayInfo);
 
     // 如果是支持提醒的任务且已启用，更新提醒
     const catalog = getTaskCatalogItem(taskId);
@@ -451,6 +491,12 @@ export class HomeStore {
     if (dayInfo.finTaskNum >= dayInfo.targetTaskNum) {
       return 3;
     }
+    // 补救状态：完成度 >= 70% 且有补救记录 → 状态 4
+    if (dayInfo.calculatePercentage() >= 70) {
+      if (this.todayRecovery !== null && this.todayRecovery.date === dayInfo.date && this.todayRecovery.used) {
+        return 4;
+      }
+    }
     if (dayInfo.finTaskNum > 0) {
       return 2;
     }
@@ -461,6 +507,38 @@ export class HomeStore {
     const next = new Map<string, number>(this.calendarDayStatus);
     next.set(dayInfo.date, this.getDayStatus(dayInfo));
     this.calendarDayStatus = next;
+  }
+
+  /**
+   * 如果月视图处于打开状态，且日期属于当前浏览月份，同步更新对应格的状态。
+   */
+  private updateMonthViewData(dayInfo: DayInfo): void {
+    if (!this.isMonthView) {
+      return;
+    }
+    if (getYearMonth(dayInfo.date) !== getYearMonth(this.monthViewDate)) {
+      return;
+    }
+    const next = new Map<string, number>(this.monthViewData);
+    next.set(dayInfo.date, this.getDayStatus(dayInfo));
+    this.monthViewData = next;
+  }
+
+  private async syncTodayCompletionState(dayInfo: DayInfo): Promise<void> {
+    if (dayInfo.date !== getToday()) {
+      return;
+    }
+
+    const before = this.consecutiveState;
+    if (isDayCompletedForStreak(dayInfo, this.todayRecovery)) {
+      this.consecutiveState = onAllTasksCompleted(this.consecutiveState);
+    } else {
+      this.consecutiveState = onCurrentDayCompletionRevoked(this.consecutiveState);
+    }
+
+    if (this.consecutiveState !== before) {
+      await this.prefRepo.saveConsecutiveState(this.consecutiveState);
+    }
   }
 
   private async loadWeekStatusData(centerDate: string): Promise<void> {
@@ -480,11 +558,12 @@ export class HomeStore {
   }
 
   /**
-   * 打开月视图，加载当前选中日期所在月份的数据
+   * 打开月视图，以当前选中日期所在月份为初始浏览月份
    */
   async openMonthView(): Promise<void> {
     this.isMonthView = true;
-    await this.loadMonthData(this.selectedDate);
+    this.monthViewDate = this.selectedDate;
+    await this.loadMonthData(this.monthViewDate);
   }
 
   /**
@@ -495,30 +574,55 @@ export class HomeStore {
   }
 
   /**
-   * 加载指定月份的完成状态数据
+   * 切换到上一个浏览月份（带防抖，上一次加载完成前忽略新请求）
+   */
+  async loadPreviousMonth(): Promise<void> {
+    if (this.isMonthLoading) {
+      return;
+    }
+    this.isMonthLoading = true;
+    this.monthViewDate = getMonthOffset(this.monthViewDate, -1);
+    try {
+      await this.loadMonthData(this.monthViewDate);
+    } finally {
+      this.isMonthLoading = false;
+    }
+  }
+
+  /**
+   * 切换到下一个浏览月份（带防抖，上一次加载完成前忽略新请求）
+   */
+  async loadNextMonth(): Promise<void> {
+    if (this.isMonthLoading) {
+      return;
+    }
+    this.isMonthLoading = true;
+    this.monthViewDate = getMonthOffset(this.monthViewDate, 1);
+    try {
+      await this.loadMonthData(this.monthViewDate);
+    } finally {
+      this.isMonthLoading = false;
+    }
+  }
+
+  /**
+   * 加载指定月份的完成状态数据（基于 DayInfo 聚合，无需任务明细）
    */
   private async loadMonthData(centerDate: string): Promise<void> {
     const days = getMonthGrid(centerDate);
     const startDate = days[0];
     const endDate = days[days.length - 1];
     const dayInfoList = await this.dayRepo.getDayInfoList(startDate, endDate);
-    const dayTaskList = await this.dayTaskRepo.getDayTasksByDateRange(startDate, endDate);
+    const recoveryList = await this.recoveryRepo.getRecoveryListByDateRange(startDate, endDate);
 
-    // 构建 date -> DayInfo 映射
     const dayInfoMap = new Map<string, DayInfo>();
     for (const di of dayInfoList) {
       dayInfoMap.set(di.date, di);
     }
 
-    // 构建 date -> 完成任务数 映射
-    const dayTaskMap = new Map<string, DayTaskInfo[]>();
-    for (const dt of dayTaskList) {
-      let list = dayTaskMap.get(dt.date);
-      if (!list) {
-        list = [];
-        dayTaskMap.set(dt.date, list);
-      }
-      list.push(dt);
+    const recoveryMap = new Map<string, RecoveryInfo>();
+    for (const ri of recoveryList) {
+      recoveryMap.set(ri.date, ri);
     }
 
     this.monthViewData = new Map<string, number>();
@@ -528,10 +632,15 @@ export class HomeStore {
         this.monthViewData.set(date, 0); // 无记录
       } else if (di.finTaskNum >= di.targetTaskNum) {
         this.monthViewData.set(date, 3); // 全部完成
-      } else if (di.finTaskNum > 0) {
-        this.monthViewData.set(date, 2); // 部分完成
       } else {
-        this.monthViewData.set(date, 1); // 未完成
+        const ri = recoveryMap.get(date);
+        if (ri && ri.used && di.calculatePercentage() >= 70) {
+          this.monthViewData.set(date, 4); // 补救完成
+        } else if (di.finTaskNum > 0) {
+          this.monthViewData.set(date, 2); // 部分完成
+        } else {
+          this.monthViewData.set(date, 1); // 未完成
+        }
       }
     }
   }
@@ -542,5 +651,85 @@ export class HomeStore {
   async selectDateFromMonthView(date: string): Promise<void> {
     this.isMonthView = false;
     await this.selectDate(date);
+  }
+
+  /**
+   * 获取指定任务的目标建议。
+   * 查询最近 7 天的 DayTaskInfo，调用纯函数规则生成建议。
+   */
+  async getGoalSuggestion(taskId: number): Promise<GoalSuggestion> {
+    const today = getToday();
+    const startDate = getDateOffset(today, -6); // 含今天共 7 天
+    const recentTasks = await this.dayTaskRepo.getDayTasksByDateRange(startDate, today);
+    const taskRecent = recentTasks.filter(t => t.taskId === taskId);
+
+    const task = this.allTasks.find(t => t.taskId === taskId);
+    if (!task) {
+      return new GoalSuggestion();
+    }
+
+    const catalog = getTaskCatalogItem(taskId);
+    const pickerRange = catalog ? catalog.pickerRange : [];
+
+    return suggestGoalAdjustment(task.targetValue, taskRecent, pickerRange);
+  }
+
+  /**
+   * 判断今天是否可以使用补救。
+   * 条件：今天 + 完成度 >= 70% 且 < 100% + 本周未使用过补救。
+   */
+  async canUseRecoveryToday(): Promise<boolean> {
+    const today = getToday();
+    const weekKey = getWeekKey(today);
+    const weekRecovery = await this.recoveryRepo.getRecoveryByWeek(weekKey);
+    return canUseRecovery(today, this.dayInfo, weekRecovery);
+  }
+
+  /**
+   * 使用本周补救。
+   * 写入补救记录，更新连续天数（保持连续不中断）。
+   */
+  async useRecoveryToday(): Promise<boolean> {
+    const today = getToday();
+    const canUse = await this.canUseRecoveryToday();
+    if (!canUse) {
+      return false;
+    }
+
+    const percent = this.dayInfo.calculatePercentage();
+    const record = createRecoveryRecord(today, percent);
+    await this.recoveryRepo.upsertRecovery(record);
+    this.todayRecovery = record;
+
+    // 使用补救后，如果今天尚未被计为完成，增加一次连续天数
+    if (!this.consecutiveState.currentDayStatus) {
+      const newCurrent = this.consecutiveState.currentConsecutiveDays + 1;
+      const newMax = Math.max(this.consecutiveState.maxConsecutiveDays, newCurrent);
+      this.consecutiveState = new ConsecutiveDaysState(
+        newMax, newCurrent, true, null, this.consecutiveState.maxConsecutiveDays
+      );
+      await this.prefRepo.saveConsecutiveState(this.consecutiveState);
+    }
+
+    // 更新月视图和日历状态
+    this.updateCalendarDayStatus(this.dayInfo);
+    this.updateMonthViewData(this.dayInfo);
+
+    // 服务卡片仍显示真实完成度，不把补救显示成满分
+    await this.formService.updateAllForms(this.dayInfo, this.dayTasks);
+
+    return true;
+  }
+
+  /**
+   * 生成本周复盘。
+   * 查询最近 7 天的 DayInfo 和 DayTaskInfo，调用纯函数规则生成复盘。
+   */
+  async getWeeklyReview(): Promise<WeeklyReview> {
+    const today = getToday();
+    const startDate = getDateOffset(today, -6); // 含今天共 7 天
+    const weekDayInfos = await this.dayRepo.getDayInfoList(startDate, today);
+    const weekDayTasks = await this.dayTaskRepo.getDayTasksByDateRange(startDate, today);
+    return generateWeeklyReview(weekDayInfos, weekDayTasks);
   }
 }
