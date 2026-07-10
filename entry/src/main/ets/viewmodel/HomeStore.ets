@@ -10,7 +10,7 @@ import { DatabaseHelper } from '../data/db/DatabaseHelper';
 import { PreferencesRepository } from '../data/prefs/PreferencesRepository';
 import { ProfileRepository } from '../data/prefs/ProfileRepository';
 import { FormService } from '../services/FormService';
-import { checkinTask, canCheckin } from '../domain/rules/TaskRules';
+import { checkinTask, canCheckin, undoCheckinTask } from '../domain/rules/TaskRules';
 import {
   isAllTasksCompleted,
   onAllTasksCompleted,
@@ -292,6 +292,44 @@ export class HomeStore {
     this.updateMonthViewData(this.dayInfo);
 
     // 更新服务卡片
+    await this.formService.updateAllForms(this.dayInfo, this.dayTasks, this.allTasks);
+
+    return true;
+  }
+
+  /**
+   * 撤销打卡
+   */
+  async undoCheckin(dayTaskId: number): Promise<boolean> {
+    const dayTask = this.dayTasks.find(t => t.id === dayTaskId);
+    if (!dayTask) {
+      return false;
+    }
+    if (!dayTask.isDone && dayTask.finValue === '') {
+      return false;
+    }
+
+    const taskInfo = this.allTasks.find(t => t.taskId === dayTask.taskId);
+    if (!taskInfo) {
+      return false;
+    }
+
+    const updated = undoCheckinTask(dayTask, taskInfo);
+    await this.dayTaskRepo.updateDayTask(updated);
+
+    const idx = this.dayTasks.findIndex(t => t.id === dayTaskId);
+    this.dayTasks[idx] = updated;
+    this.dayTasks = [...this.dayTasks];
+
+    const activeCount = this.allTasks.filter(t => t.isOpen).length;
+    this.dayInfo = recalculateDayInfo(this.dayInfo, this.dayTasks, activeCount);
+    await this.dayRepo.upsertDayInfo(this.dayInfo);
+
+    await this.syncTodayCompletionState(this.dayInfo);
+
+    this.updateCalendarDayStatus(this.dayInfo);
+    this.updateMonthViewData(this.dayInfo);
+
     await this.formService.updateAllForms(this.dayInfo, this.dayTasks, this.allTasks);
 
     return true;

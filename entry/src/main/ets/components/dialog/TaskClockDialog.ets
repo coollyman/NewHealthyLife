@@ -2,6 +2,7 @@ import { DayTaskInfo } from '../../domain/models/DayTaskInfo';
 import { TaskType } from '../../domain/constants/TaskCatalog';
 import { getTaskDisplayMeta, getDialogIconResource } from '../../domain/constants/TaskDisplayMeta';
 import { HomeStore } from '../../viewmodel/HomeStore';
+import { promptAction } from '@kit.ArkUI';
 
 /**
  * 打卡弹窗
@@ -11,6 +12,7 @@ struct TaskClockDialog {
   dayTask: DayTaskInfo = new DayTaskInfo();
   homeStore: HomeStore = new HomeStore();
   onConfirm: () => void = () => {};
+  onUndo: () => void = () => {};
   controller: CustomDialogController = new CustomDialogController({ builder: undefined });
 
   build() {
@@ -54,6 +56,17 @@ struct TaskClockDialog {
           }
           this.controller.close();
         })
+
+      if (this.canUndo()) {
+        Text('撤销打卡')
+          .fontSize(14)
+          .fontColor('#CCFFFFFF')
+          .margin({ top: 12 })
+          .onClick(() => {
+            this.onUndo();
+            this.controller.close();
+          })
+      }
     }
     .width(316)
     .height(451)
@@ -103,6 +116,17 @@ struct TaskClockDialog {
           }
           this.controller.close();
         })
+
+      if (this.canUndo()) {
+        Text('撤销打卡')
+          .fontSize(14)
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 16 })
+          .onClick(() => {
+            this.onUndo();
+            this.controller.close();
+          })
+      }
     }
     .width(316)
     .padding({ left: 24, right: 24, top: 36, bottom: 24 })
@@ -111,11 +135,6 @@ struct TaskClockDialog {
   }
 
   private usesIconLayout(): boolean {
-    const task = this.homeStore.allTasks.find(t => t.taskId === this.dayTask.taskId);
-    if (!task) {
-      return true;
-    }
-    const meta = getTaskDisplayMeta(task);
     return true;
   }
 
@@ -175,8 +194,12 @@ struct TaskClockDialog {
   }
 
   private canContinueCheckin(): boolean {
-    // 已完成的任务统一显示"已完成"，不再允许继续打卡
     return !this.dayTask.isDone;
+  }
+
+  private canUndo(): boolean {
+    // 已打卡过的任务才能撤销（isDone 或 finValue 非空）
+    return this.dayTask.isDone || this.dayTask.finValue !== '';
   }
 
   private getButtonText(): Resource {

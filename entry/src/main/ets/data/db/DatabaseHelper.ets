@@ -110,13 +110,7 @@ export class DatabaseHelper {
     await this.rdbStore.executeSql(`DELETE FROM ${DbSchema.TABLE_DAY_TASK}`);
     await this.rdbStore.executeSql(`DELETE FROM ${DbSchema.TABLE_DAY}`);
     await this.rdbStore.executeSql(`DELETE FROM ${DbSchema.TABLE_RECOVERY}`);
-    // 预设任务保留行但重置为关闭状态
-    await this.rdbStore.executeSql(
-      `UPDATE ${DbSchema.TABLE_TASK} SET isOpen = 0, isAlert = 0, reminderId = -1, isArchived = 0 WHERE isPreset = 1`
-    );
-    // 删除自定义任务
-    await this.rdbStore.executeSql(
-      `DELETE FROM ${DbSchema.TABLE_TASK} WHERE isPreset = 0 OR isPreset IS NULL`
-    );
+    // 清空任务表 — ensureDefaultTasks 会重新插入 7 个预设任务（全部关闭）
+    await this.rdbStore.executeSql(`DELETE FROM ${DbSchema.TABLE_TASK}`);
   }
 }

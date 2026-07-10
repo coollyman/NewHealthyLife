@@ -12,10 +12,13 @@
       --paper: #ffffff;
       --soft: #f3f6fa;
       --blue: #155eef;
+      --cyan: #0e9384;
       --green: #16885f;
       --gold: #b7791f;
       --red: #c2413f;
-      --shadow: 0 14px 36px rgba(24, 34, 48, .08);
+      --navy: #0f172a;
+      --shadow: 0 20px 54px rgba(24, 34, 48, .10);
+      --phone-shadow: 0 24px 58px rgba(15, 23, 42, .22);
     }
 
     * { box-sizing: border-box; }
@@ -23,13 +26,15 @@
     body {
       margin: 0;
       color: var(--ink);
-      background: #eaf0f7;
+      background:
+        linear-gradient(180deg, rgba(21, 94, 239, .08), rgba(14, 147, 132, .04) 38%, rgba(234, 240, 247, 0)),
+        #eaf0f7;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
       letter-spacing: 0;
     }
 
     .page {
-      max-width: 1160px;
+      max-width: 1220px;
       margin: 28px auto;
       background: var(--paper);
       border: 1px solid var(--line);
@@ -37,17 +42,21 @@
     }
 
     .cover {
-      padding: 56px 64px 42px;
+      position: relative;
+      overflow: hidden;
+      padding: 58px 64px 46px;
       border-bottom: 1px solid var(--line);
-      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+      background:
+        linear-gradient(135deg, rgba(21, 94, 239, .10), rgba(14, 147, 132, .09) 44%, rgba(255, 255, 255, 0) 70%),
+        linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
     }
 
     .cover-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 24px;
-      align-items: flex-start;
-      margin-bottom: 38px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 430px;
+      gap: 42px;
+      align-items: center;
+      margin-bottom: 34px;
     }
 
     .label {
@@ -63,7 +72,7 @@
 
     h1 {
       margin: 0 0 16px;
-      font-size: 42px;
+      font-size: 48px;
       line-height: 1.18;
       letter-spacing: 0;
     }
@@ -77,11 +86,67 @@
     }
 
     .meta {
-      min-width: 260px;
+      margin-top: 22px;
+      max-width: 520px;
       padding: 18px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: #fff;
+      background: rgba(255, 255, 255, .82);
+      backdrop-filter: blur(8px);
+    }
+
+    .hero-stage {
+      position: relative;
+      min-height: 560px;
+    }
+
+    .phone {
+      position: absolute;
+      overflow: hidden;
+      border: 8px solid #111827;
+      border-radius: 30px;
+      background: #111827;
+      box-shadow: var(--phone-shadow);
+    }
+
+    .phone img {
+      display: block;
+      width: 100%;
+    }
+
+    .phone.main {
+      width: 252px;
+      right: 94px;
+      top: 0;
+      z-index: 3;
+    }
+
+    .phone.left {
+      width: 202px;
+      left: 0;
+      top: 128px;
+      z-index: 2;
+    }
+
+    .phone.right {
+      width: 202px;
+      right: 0;
+      top: 210px;
+      z-index: 1;
+    }
+
+    .hero-caption {
+      position: absolute;
+      left: 58px;
+      right: 30px;
+      bottom: 0;
+      padding: 14px 16px;
+      border: 1px solid rgba(216, 224, 234, .9);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .88);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
     }
 
     .meta div {
@@ -109,6 +174,7 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       background: #fff;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, .05);
     }
 
     .stat strong {
@@ -127,17 +193,30 @@
     main { padding: 42px 64px 58px; }
 
     section {
-      padding: 30px 0;
+      padding: 36px 0;
       border-bottom: 1px solid var(--line);
     }
 
     section:last-child { border-bottom: 0; }
 
     h2 {
+      position: relative;
       margin: 0 0 16px;
+      padding-left: 16px;
       font-size: 28px;
       line-height: 1.28;
       letter-spacing: 0;
+    }
+
+    h2::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 5px;
+      width: 5px;
+      height: 28px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--blue), var(--cyan));
     }
 
     h3 {
@@ -154,10 +233,15 @@
 
     .lead-grid,
     .tech-grid,
-    .verify-grid {
+    .verify-grid,
+    .score-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px;
+    }
+
+    .score-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .card {
@@ -165,10 +249,12 @@
       border-radius: 8px;
       background: #fff;
       padding: 20px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, .04);
     }
 
     .card.accent {
       border-left: 4px solid var(--blue);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
     }
 
     .plain-list {
@@ -178,16 +264,37 @@
       line-height: 1.8;
     }
 
+    .plain-list li::marker {
+      color: var(--blue);
+    }
+
     .feature {
       display: grid;
-      grid-template-columns: minmax(0, 1.05fr) 260px;
-      gap: 22px;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 30px;
       align-items: start;
-      padding: 22px 0;
+      padding: 30px 0;
       border-top: 1px solid #edf1f6;
     }
 
     .feature:first-of-type { border-top: 0; }
+
+    .feature.reverse {
+      grid-template-columns: 300px minmax(0, 1fr);
+    }
+
+    .feature.reverse .shot {
+      order: -1;
+    }
+
+    .feature.featured {
+      grid-template-columns: minmax(0, 1fr) 360px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: linear-gradient(180deg, #fbfdff 0%, #ffffff 100%);
+      box-shadow: 0 14px 34px rgba(15, 23, 42, .06);
+    }
 
     .badge-row {
       display: flex;
@@ -209,7 +316,7 @@
     .shot {
       overflow: hidden;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 10px;
       background: #f8fafc;
       cursor: pointer;
       transition: transform .18s ease, box-shadow .18s ease;
@@ -227,6 +334,52 @@
       object-fit: cover;
       object-position: top;
       background: #f8fafc;
+    }
+
+    .phone-shot img {
+      border: 7px solid #111827;
+      border-radius: 26px;
+      background: #111827;
+    }
+
+    .architecture {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin: 18px 0 6px;
+    }
+
+    .arch-node {
+      position: relative;
+      min-height: 128px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, .05);
+    }
+
+    .arch-node:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -17px;
+      top: 43%;
+      color: var(--blue);
+      font-weight: 800;
+      z-index: 2;
+    }
+
+    .arch-node strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 16px;
+    }
+
+    .arch-node span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
     }
 
     .shot figcaption {
@@ -249,7 +402,8 @@
       padding: 16px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: #fff;
+      background: linear-gradient(180deg, #fff 0%, #fbfcff 100%);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .04);
     }
 
     code,
@@ -274,6 +428,7 @@
       background: #111827;
       color: #e5edf8;
       overflow: auto;
+      box-shadow: 0 20px 42px rgba(15, 23, 42, .18);
     }
 
     .terminal code {
@@ -367,12 +522,22 @@
     @media (max-width: 900px) {
       .page { margin: 0; border: 0; }
       .cover, main, footer { padding-left: 24px; padding-right: 24px; }
-      .cover-top, .lead-grid, .tech-grid, .verify-grid, .feature, .modal-dialog {
+      .cover-top, .lead-grid, .tech-grid, .verify-grid, .score-grid, .feature, .feature.reverse, .feature.featured, .modal-dialog, .architecture {
         grid-template-columns: 1fr;
         display: grid;
       }
+      h1 { font-size: 38px; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .timeline-item { grid-template-columns: 1fr; }
+      .hero-stage { min-height: 0; display: grid; gap: 16px; }
+      .phone, .phone.main, .phone.left, .phone.right {
+        position: static;
+        width: 100%;
+        max-width: 320px;
+      }
+      .hero-caption { position: static; }
+      .feature.reverse .shot { order: 0; }
+      .arch-node::after { display: none; }
     }
 
     @media print {
@@ -399,12 +564,26 @@
             本项目基于 ArkTS 与 ArkUI 开发，围绕健康习惯配置、每日打卡、提醒、成就激励和个人资料管理构建完整应用闭环。
             报告内容依据当前 Git 提交、真实设备截图和最近一轮构建/测试结果整理。
           </p>
+          <div class="meta" aria-label="报告信息">
+            <div><span>学生姓名</span><strong>请填写</strong></div>
+            <div><span>班级/学号</span><strong>请填写</strong></div>
+            <div><span>项目名称</span><strong>NewHealthyLife</strong></div>
+            <div><span>报告日期</span><strong>2026-07-10</strong></div>
+          </div>
         </div>
-        <div class="meta" aria-label="报告信息">
-          <div><span>学生姓名</span><strong>请填写</strong></div>
-          <div><span>班级/学号</span><strong>请填写</strong></div>
-          <div><span>项目名称</span><strong>NewHealthyLife</strong></div>
-          <div><span>报告日期</span><strong>2026-07-10</strong></div>
+        <div class="hero-stage" aria-label="项目页面预览">
+          <div class="phone left">
+            <img src="assets/achievement.png" alt="成就页预览">
+          </div>
+          <div class="phone main">
+            <img src="assets/home.png" alt="首页预览">
+          </div>
+          <div class="phone right">
+            <img src="assets/profile-edit.png" alt="个人资料页预览">
+          </div>
+          <div class="hero-caption">
+            首屏展示应用三条主线：每日打卡、长期激励、个人资料管理。后续替换新素材时，只需替换对应 `assets/*.png`。
+          </div>
         </div>
       </div>
       <div class="stats">
@@ -416,6 +595,36 @@
     </header>
 
     <main>
+      <!-- 可拓展说明：新增素材时，优先复制一个 .feature 模块；新增评分点时复制 .card.accent。图片放在 assets/ 后使用相对路径引用。 -->
+      <section>
+        <h2>评分亮点总览</h2>
+        <p>
+          本节将项目成果按老师评分时最容易关注的维度压缩展示：功能完成度、技术实现、测试证据和迭代质量。
+        </p>
+        <div class="score-grid">
+          <div class="card accent">
+            <span class="label">功能完整度</span>
+            <h3>健康习惯闭环</h3>
+            <p>预设习惯、自定义习惯、每日打卡、日期回顾、成就激励、资料管理均已形成闭环。</p>
+          </div>
+          <div class="card accent">
+            <span class="label">技术实现</span>
+            <h3>分层清晰</h3>
+            <p>页面、组件、ViewModel、领域规则、Repository、提醒服务分层组织，便于扩展和测试。</p>
+          </div>
+          <div class="card accent">
+            <span class="label">测试验证</span>
+            <h3>18/18 通过</h3>
+            <p>设备集成测试通过，UI smoke 验证主页面，截图证据覆盖核心功能。</p>
+          </div>
+          <div class="card accent">
+            <span class="label">迭代质量</span>
+            <h3>多轮修复</h3>
+            <p>修复任务名、资料输入、自定义任务、提醒同步和打卡弹窗文案等问题。</p>
+          </div>
+        </div>
+      </section>
+
       <section>
         <h2>一、项目概述</h2>
         <div class="lead-grid">
@@ -452,7 +661,7 @@
       <section>
         <h2>二、功能完成情况</h2>
 
-        <article class="feature">
+        <article class="feature featured">
           <div>
             <h3>1. 首页与每日打卡中心</h3>
             <p>
@@ -465,13 +674,13 @@
               <li>任务列表展示早起、喝水、刷牙、跑步等任务的完成状态。</li>
             </ul>
           </div>
-          <figure class="shot" data-title="首页与每日打卡中心" data-image="assets/home.png" data-desc="首页展示目标进度、周日历、任务列表和底部导航，是用户每日使用的核心页面。">
+          <figure class="shot phone-shot" data-title="首页与每日打卡中心" data-image="assets/home.png" data-desc="首页展示目标进度、周日历、任务列表和底部导航，是用户每日使用的核心页面。">
             <img src="assets/home.png" alt="首页截图">
             <figcaption>首页：目标进度、周日历、任务列表。</figcaption>
           </figure>
         </article>
 
-        <article class="feature">
+        <article class="feature reverse">
           <div>
             <h3>2. 预设习惯与添加任务</h3>
             <p>
@@ -484,7 +693,7 @@
               <li>新增跑步任务，任务目录从 6 个扩展为 7 个。</li>
             </ul>
           </div>
-          <figure class="shot" data-title="添加任务与预设习惯" data-image="assets/add-task.png" data-desc="添加任务页展示创建自定义习惯入口和预设习惯列表。">
+          <figure class="shot phone-shot" data-title="添加任务与预设习惯" data-image="assets/add-task.png" data-desc="添加任务页展示创建自定义习惯入口和预设习惯列表。">
             <img src="assets/add-task.png" alt="添加任务页截图">
             <figcaption>添加任务：自定义入口与预设习惯列表。</figcaption>
           </figure>
@@ -503,13 +712,13 @@
               <li>创建时校验名称、目标值、时间格式、步进和执行星期。</li>
             </ul>
           </div>
-          <figure class="shot" data-title="自定义习惯创建" data-image="assets/custom-task-form.png" data-desc="自定义习惯表单支持名称、图标、类型、目标、单位和执行星期配置。">
+          <figure class="shot phone-shot" data-title="自定义习惯创建" data-image="assets/custom-task-form.png" data-desc="自定义习惯表单支持名称、图标、类型、目标、单位和执行星期配置。">
             <img src="assets/custom-task-form.png" alt="自定义习惯创建截图">
             <figcaption>自定义习惯：名称、图标、类型、目标、单位、星期。</figcaption>
           </figure>
         </article>
 
-        <article class="feature">
+        <article class="feature reverse">
           <div>
             <h3>4. 编辑任务与提醒配置</h3>
             <p>
@@ -522,13 +731,13 @@
               <li>修复了自定义任务提醒关闭、目标更新后提醒未同步的问题。</li>
             </ul>
           </div>
-          <figure class="shot" data-title="编辑任务与提醒配置" data-image="assets/edit-task-reminder.png" data-desc="编辑任务页展示目标设置、提醒开关、提醒时间和提醒频率。">
+          <figure class="shot phone-shot" data-title="编辑任务与提醒配置" data-image="assets/edit-task-reminder.png" data-desc="编辑任务页展示目标设置、提醒开关、提醒时间和提醒频率。">
             <img src="assets/edit-task-reminder.png" alt="编辑任务提醒截图">
             <figcaption>编辑任务：目标设置、提醒开关、时间和频率。</figcaption>
           </figure>
         </article>
 
-        <article class="feature">
+        <article class="feature featured">
           <div>
             <h3>5. 打卡反馈与完成状态</h3>
             <p>
@@ -541,13 +750,13 @@
               <li>截图中按钮文案显示“已完成”，对应最新修复提交 `b25eda9`。</li>
             </ul>
           </div>
-          <figure class="shot" data-title="打卡反馈与已完成状态" data-image="assets/checkin-completed.png" data-desc="打卡弹窗在任务完成后显示“已完成”，证明按钮文案逻辑已修复。">
+          <figure class="shot phone-shot" data-title="打卡反馈与已完成状态" data-image="assets/checkin-completed.png" data-desc="打卡弹窗在任务完成后显示“已完成”，证明按钮文案逻辑已修复。">
             <img src="assets/checkin-completed.png" alt="打卡反馈已完成截图">
             <figcaption>打卡反馈：任务完成后按钮显示“已完成”。</figcaption>
           </figure>
         </article>
 
-        <article class="feature">
+        <article class="feature reverse">
           <div>
             <h3>6. 月视图与历史状态回顾</h3>
             <p>
@@ -559,7 +768,7 @@
               <li>点击日期可回到首页并切换当前查看日期。</li>
             </ul>
           </div>
-          <figure class="shot" data-title="月视图与历史状态" data-image="assets/month-view.png" data-desc="月视图展示整月日期和完成状态，支持用户回顾历史打卡情况。">
+          <figure class="shot phone-shot" data-title="月视图与历史状态" data-image="assets/month-view.png" data-desc="月视图展示整月日期和完成状态，支持用户回顾历史打卡情况。">
             <img src="assets/month-view.png" alt="月视图截图">
             <figcaption>月视图：整月日期与完成状态标识。</figcaption>
           </figure>
@@ -578,13 +787,13 @@
               <li>修复了周复盘任务名解析和补救触发成就检测问题。</li>
             </ul>
           </div>
-          <figure class="shot" data-title="成就系统与周复盘" data-image="assets/achievement.png" data-desc="成就页顶部展示连续天数、最高连续天数、本周复盘和徽章状态。">
+          <figure class="shot phone-shot" data-title="成就系统与周复盘" data-image="assets/achievement.png" data-desc="成就页顶部展示连续天数、最高连续天数、本周复盘和徽章状态。">
             <img src="assets/achievement.png" alt="成就页截图">
             <figcaption>成就页：连续天数、周复盘和徽章。</figcaption>
           </figure>
         </article>
 
-        <article class="feature">
+        <article class="feature reverse">
           <div>
             <h3>8. 单项达成与超额达成</h3>
             <p>
@@ -597,7 +806,7 @@
               <li>页面层根据 taskId 解析任务名称，避免 domain 层依赖资源文案。</li>
             </ul>
           </div>
-          <figure class="shot" data-title="单项达成与超额达成" data-image="assets/achievement-detail.png" data-desc="成就页下半部分展示单项达成和超额达成区域。">
+          <figure class="shot phone-shot" data-title="单项达成与超额达成" data-image="assets/achievement-detail.png" data-desc="成就页下半部分展示单项达成和超额达成区域。">
             <img src="assets/achievement-detail.png" alt="成就详情截图">
             <figcaption>成就详情：单项达成和超额达成。</figcaption>
           </figure>
@@ -616,13 +825,13 @@
               <li>保留检查更新入口，形成完整个人中心页面。</li>
             </ul>
           </div>
-          <figure class="shot" data-title="我的页面与动态等级" data-image="assets/mine.png" data-desc="我的页面展示头像、昵称、动态等级和个人资料入口。">
+          <figure class="shot phone-shot" data-title="我的页面与动态等级" data-image="assets/mine.png" data-desc="我的页面展示头像、昵称、动态等级和个人资料入口。">
             <img src="assets/mine.png" alt="我的页面截图">
             <figcaption>我的页面：用户信息、等级、资料入口。</figcaption>
           </figure>
         </article>
 
-        <article class="feature">
+        <article class="feature reverse">
           <div>
             <h3>10. 个人资料编辑</h3>
             <p>
@@ -635,7 +844,7 @@
               <li>性别采用行内 chip 选择，保存后更新我的页面摘要。</li>
             </ul>
           </div>
-          <figure class="shot" data-title="个人资料编辑" data-image="assets/profile-edit.png" data-desc="个人资料页展示头像、昵称、性别、生日、身高和体重编辑。">
+          <figure class="shot phone-shot" data-title="个人资料编辑" data-image="assets/profile-edit.png" data-desc="个人资料页展示头像、昵称、性别、生日、身高和体重编辑。">
             <img src="assets/profile-edit.png" alt="个人资料编辑截图">
             <figcaption>个人资料：头像、昵称、性别、生日、身高、体重。</figcaption>
           </figure>
@@ -644,6 +853,32 @@
 
       <section>
         <h2>三、核心技术实现</h2>
+        <p>
+          项目采用“页面展示 - 状态协调 - 领域规则 - 服务/仓储 - 持久化能力”的分层方式组织代码。后续增加新功能时，
+          可以优先判断它属于页面交互、规则计算、服务能力还是数据读写，从而放入对应层次。
+        </p>
+        <div class="architecture" aria-label="技术架构图">
+          <div class="arch-node">
+            <strong>Pages / Components</strong>
+            <span>首页、添加任务、编辑任务、成就、我的、弹窗和可复用 UI 组件。</span>
+          </div>
+          <div class="arch-node">
+            <strong>ViewModel / Store</strong>
+            <span>HomeStore、ProfileStore 负责页面状态、任务列表和用户资料协调。</span>
+          </div>
+          <div class="arch-node">
+            <strong>Domain Rules</strong>
+            <span>TaskRules、AchievementRules、WeeklyReviewRules 等规则计算。</span>
+          </div>
+          <div class="arch-node">
+            <strong>Services</strong>
+            <span>ReminderService、设备能力和提醒调度封装。</span>
+          </div>
+          <div class="arch-node">
+            <strong>Repository</strong>
+            <span>数据库、偏好存储、资料存储和自定义任务持久化。</span>
+          </div>
+        </div>
         <div class="tech-grid">
           <div class="card">
             <h3>页面与组件实现</h3>

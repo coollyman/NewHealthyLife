@@ -228,6 +228,9 @@ export struct TaskList {
           homeStore: this.homeStore,
           onConfirm: () => {
             this.handleCheckin();
+          },
+          onUndo: () => {
+            this.handleUndoCheckin();
           }
         }),
         autoCancel: true,
@@ -250,6 +253,17 @@ export struct TaskList {
     if (unlocked !== null) {
       this.openAchievementDialog(unlocked);
     }
+  }
+
+  private async handleUndoCheckin(): Promise<void> {
+    if (!this.selectedTask) {
+      return;
+    }
+    const undone = await this.homeStore.undoCheckin(this.selectedTask.id);
+    if (!undone) {
+      return;
+    }
+    this.selectedTask = null;
   }
 
   private openAchievementDialog(threshold: number): void {

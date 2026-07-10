@@ -56,6 +56,35 @@ export function checkinTask(dayTask: DayTaskInfo, taskInfo: TaskInfo): DayTaskIn
 }
 
 /**
+ * 撤销打卡，返回更新后的 DayTaskInfo（不可变，返回新对象）
+ * - 一次性/时间类任务：重置为未完成
+ * - 数值任务：回退一个 step，不低于 0
+ */
+export function undoCheckinTask(dayTask: DayTaskInfo, taskInfo: TaskInfo): DayTaskInfo {
+  const result = new DayTaskInfo(
+    dayTask.id, dayTask.date, dayTask.taskId,
+    dayTask.targetValue, dayTask.finValue, dayTask.isDone
+  );
+
+  switch (taskInfo.taskType) {
+    case TaskType.ONCE:
+    case TaskType.TIME:
+      result.finValue = '';
+      result.isDone = false;
+      break;
+    case TaskType.VALUE:
+      const currentFin = parseFloat(dayTask.finValue) || 0;
+      const step = parseFloat(taskInfo.step) || 1;
+      const newFin = Math.max(0, currentFin - step);
+      result.finValue = newFin > 0 ? newFin.toString() : '';
+      result.isDone = false;
+      break;
+  }
+
+  return result;
+}
+
+/**
  * 从任务配置创建默认的当日任务快照
  */
 export function createDayTaskFromTaskInfo(date: string, taskInfo: TaskInfo): DayTaskInfo {
