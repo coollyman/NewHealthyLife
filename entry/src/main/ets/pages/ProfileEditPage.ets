@@ -4,8 +4,7 @@ import { ProfileStore } from '../viewmodel/ProfileStore';
 import {
   ProfileInfo,
   ProfileGender,
-  validateProfileInput,
-  formatProfileGender
+  validateProfileInput
 } from '../domain/models/ProfileInfo';
 
 /**
@@ -21,7 +20,6 @@ struct ProfileEditPage {
   @State birthDate: string = '';
   @State heightCm: string = '';
   @State weightKg: string = '';
-  @State editingField: string = '';
   @State showBirthPicker: boolean = false;
 
   async aboutToAppear(): Promise<void> {
@@ -139,18 +137,50 @@ struct ProfileEditPage {
   @Builder
   profileRows() {
     Column() {
-      this.textEditRow($r('app.string.profile_nickname'), this.nickname, '请输入昵称', 'nickname')
+      this.nicknameRow()
       this.genderRow()
       this.birthDateRow()
-      this.textEditRow($r('app.string.profile_height'), this.heightCm, '未设置', 'height')
-      this.textEditRow($r('app.string.profile_weight'), this.weightKg, '未设置', 'weight')
+      this.numberInputRow($r('app.string.profile_height'), this.heightCm, '未设置', 'height', 'cm')
+      this.numberInputRow($r('app.string.profile_weight'), this.weightKg, '未设置', 'weight', 'kg')
     }
     .width('100%')
     .backgroundColor($r('app.color.bg_card'))
   }
 
   @Builder
-  textEditRow(label: Resource, value: string, placeholder: string, field: string) {
+  nicknameRow() {
+    Column() {
+      Row() {
+        Text($r('app.string.profile_nickname'))
+          .fontSize(16)
+          .fontColor($r('app.color.text_primary'))
+          .layoutWeight(1)
+
+        TextInput({ text: this.nickname, placeholder: '请输入昵称' })
+          .width(150)
+          .height(40)
+          .fontSize(16)
+          .fontColor($r('app.color.text_primary'))
+          .type(InputType.Normal)
+          .onChange((next: string) => {
+            this.nickname = next;
+          })
+      }
+      .width('100%')
+      .height(56)
+      .padding({ left: 16, right: 16 })
+      .alignItems(VerticalAlign.Center)
+
+      Divider()
+        .strokeWidth(0.5)
+        .color($r('app.color.divider'))
+        .margin({ left: 16 })
+    }
+    .width('100%')
+  }
+
+  @Builder
+  numberInputRow(label: Resource, value: string, placeholder: string, field: string, unit: string) {
     Column() {
       Row() {
         Text(label)
@@ -158,36 +188,29 @@ struct ProfileEditPage {
           .fontColor($r('app.color.text_primary'))
           .layoutWeight(1)
 
-        if (this.editingField === field) {
-          TextInput({ text: value, placeholder: placeholder })
-            .width(150)
-            .height(40)
-            .fontSize(16)
-            .fontColor($r('app.color.text_primary'))
-            .type(field === 'nickname' ? InputType.Normal : InputType.Number)
-            .onChange((next: string) => {
-              this.updateTextField(field, next);
-            })
-        } else {
-          Text(this.formatFieldValue(field, value))
-            .fontSize(15)
-            .fontColor(value === '' ? $r('app.color.text_hint') : $r('app.color.text_secondary'))
-            .margin({ right: 8 })
+        TextInput({ text: value, placeholder: placeholder })
+          .width(120)
+          .height(40)
+          .fontSize(16)
+          .fontColor($r('app.color.text_primary'))
+          .type(InputType.Number)
+          .onChange((next: string) => {
+            if (field === 'height') {
+              this.heightCm = next;
+            } else if (field === 'weight') {
+              this.weightKg = next;
+            }
+          })
 
-          Image($r('app.media.ic_right_grey'))
-            .width(16)
-            .height(16)
-            .fillColor($r('app.color.text_hint'))
-        }
+        Text(unit)
+          .fontSize(14)
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ left: 4 })
       }
       .width('100%')
       .height(56)
       .padding({ left: 16, right: 16 })
       .alignItems(VerticalAlign.Center)
-      .onClick(() => {
-        this.editingField = field;
-        this.showBirthPicker = false;
-      })
 
       Divider()
         .strokeWidth(0.5)
@@ -206,36 +229,17 @@ struct ProfileEditPage {
           .fontColor($r('app.color.text_primary'))
           .layoutWeight(1)
 
-        Text(formatProfileGender(this.gender))
-          .fontSize(15)
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ right: 8 })
-
-        Image($r('app.media.ic_right_grey'))
-          .width(16)
-          .height(16)
-          .fillColor($r('app.color.text_hint'))
+        this.genderChip($r('app.string.profile_gender_male'), ProfileGender.MALE)
+        this.genderChip($r('app.string.profile_gender_female'), ProfileGender.FEMALE)
+        this.genderChip($r('app.string.profile_gender_secret'), ProfileGender.SECRET)
       }
       .width('100%')
       .height(56)
       .padding({ left: 16, right: 16 })
       .alignItems(VerticalAlign.Center)
       .onClick(() => {
-        this.editingField = this.editingField === 'gender' ? '' : 'gender';
         this.showBirthPicker = false;
       })
-
-      if (this.editingField === 'gender') {
-        Row() {
-          this.genderChip($r('app.string.profile_gender_male'), ProfileGender.MALE)
-          this.genderChip($r('app.string.profile_gender_female'), ProfileGender.FEMALE)
-          this.genderChip($r('app.string.profile_gender_secret'), ProfileGender.SECRET)
-        }
-        .width('100%')
-        .height(52)
-        .padding({ left: 12, right: 12, bottom: 8 })
-        .justifyContent(FlexAlign.SpaceEvenly)
-      }
 
       Divider()
         .strokeWidth(0.5)
@@ -270,7 +274,6 @@ struct ProfileEditPage {
       .alignItems(VerticalAlign.Center)
       .onClick(() => {
         this.showBirthPicker = !this.showBirthPicker;
-        this.editingField = '';
       })
 
       if (this.showBirthPicker) {
@@ -326,33 +329,8 @@ struct ProfileEditPage {
       .backgroundColor(this.gender === value ? $r('app.color.text_font_color') : $r('app.color.bg_page'))
       .onClick(() => {
         this.gender = value;
-        this.editingField = '';
       })
   }
-
-  private updateTextField(field: string, value: string): void {
-    if (field === 'nickname') {
-      this.nickname = value;
-    } else if (field === 'height') {
-      this.heightCm = value;
-    } else if (field === 'weight') {
-      this.weightKg = value;
-    }
-  }
-
-  private formatFieldValue(field: string, value: string): string {
-    if (value === '') {
-      return '未设置';
-    }
-    if (field === 'height') {
-      return `${value} cm`;
-    }
-    if (field === 'weight') {
-      return `${value} kg`;
-    }
-    return value;
-  }
-
   private async pickAvatar(): Promise<void> {
     try {
       const picker = new photoAccessHelper.PhotoViewPicker();
