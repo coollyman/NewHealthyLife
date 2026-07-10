@@ -14,6 +14,10 @@ export interface ITaskRepository {
   getAllTasks(): Promise<TaskInfo[]>;
   getActiveTasks(): Promise<TaskInfo[]>;
   getTaskById(taskId: number): Promise<TaskInfo | null>;
+  createTask(task: TaskInfo): Promise<number>;
+  archiveTask(taskId: number): Promise<void>;
+  getNextTaskId(): Promise<number>;
+  getNextSortOrder(): Promise<number>;
 }
 
 /**

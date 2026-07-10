@@ -1,4 +1,4 @@
-import { TaskInfo } from '../domain/models/TaskInfo';
+import { TaskInfo, CustomTaskInput, CUSTOM_TASK_ID_START } from '../domain/models/TaskInfo';
 import { DayInfo } from '../domain/models/DayInfo';
 import { DayTaskInfo } from '../domain/models/DayTaskInfo';
 import { RecoveryInfo } from '../domain/models/RecoveryInfo';
@@ -14,12 +14,12 @@ import {
   onAllTasksCompleted,
   onCurrentDayCompletionRevoked,
   onNewDay,
-  reconcileCurrentDayCompletion,
   ConsecutiveDaysState
 } from '../domain/rules/ConsecutiveDaysRules';
 import { initializeDayData, ensureDayTaskSnapshots, recalculateDayInfo, removeInactiveTaskFromDay } from '../domain/rules/DayInitRules';
-import { getToday, getDateOffset, compareDate, getMonthGrid, getMondayOfWeek, getMonthOffset, getYearMonth } from '../domain/utils/DateUtils';
+import { getToday, getDateOffset, compareDate, getMonthGrid, getMondayOfWeek, getMonthOffset, getYearMonth, diffDays, getDayOfWeek } from '../domain/utils/DateUtils';
 import { getTaskCatalogItem } from '../domain/constants/TaskCatalog';
+import { isScheduledOnDay } from '../domain/constants/TaskDisplayMeta';
 import { createOrUpdateReminder, cancelReminder, hasNotificationPermission, requestNotificationPermission } from '../services/ReminderService';
 import {
   ITaskRepository,
@@ -177,11 +177,13 @@ export class HomeStore {
 
     // 初始化今天的数据
     await this.initDayData(today);
-    this.consecutiveState = reconcileCurrentDayCompletion(this.dayInfo, this.consecutiveState);
-    await this.prefRepo.saveConsecutiveState(this.consecutiveState);
 
     // 加载今天的补救记录
     this.todayRecovery = await this.recoveryRepo.getRecoveryByDate(today);
+
+    // 用真实历史记录校准连续天数，避免 Preferences 残留导致成就页显示错误。
+    this.consecutiveState = await this.rebuildConsecutiveStateFromHistory(today);
+    await this.prefRepo.saveConsecutiveState(this.consecutiveState);
 
     // 加载所有任务
     this.allTasks = await this.taskRepo.getAllTasks();
@@ -258,8 +260,14 @@ export class HomeStore {
       return false;
     }
 
+    // 获取任务配置（用于 taskType 和 step）
+    const taskInfo = this.allTasks.find(t => t.taskId === dayTask.taskId);
+    if (!taskInfo) {
+      return false;
+    }
+
     // 执行打卡
-    const updated = checkinTask(dayTask);
+    const updated = checkinTask(dayTask, taskInfo);
     await this.dayTaskRepo.updateDayTask(updated);
 
     // 更新内存
@@ -302,10 +310,10 @@ export class HomeStore {
     task.isOpen = true;
     await this.taskRepo.updateTask(task);
 
-    // 为当天创建任务快照
+    // 为当天创建任务快照（检查 scheduleDays）
     const today = getToday();
-    const catalog = getTaskCatalogItem(taskId);
-    if (catalog) {
+    const dayOfWeek = getDayOfWeek(today);
+    if (isScheduledOnDay(task, dayOfWeek)) {
       const newDayTask = new DayTaskInfo(0, today, taskId, task.targetValue, '', false);
       newDayTask.id = await this.dayTaskRepo.upsertDayTask(newDayTask);
     }
@@ -326,8 +334,8 @@ export class HomeStore {
 
     await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks);
 
-    // 如果是支持提醒的任务，创建提醒 — 非阻塞，避免权限弹窗卡住页面导航
-    if (catalog && catalog.isAlertEnabled) {
+    // 如果任务启用了提醒，创建提醒 — 非阻塞
+    if (task.isAlert) {
       this.setupReminder(taskId).catch((e: Object) => {
         console.error('Failed to setup reminder: ' + e);
       });
@@ -340,8 +348,7 @@ export class HomeStore {
   private async setupReminder(taskId: number): Promise<void> {
     const task = this.allTasks.find(t => t.taskId === taskId);
     if (!task) return;
-    const catalog = getTaskCatalogItem(taskId);
-    if (!catalog || !catalog.isAlertEnabled || !task.isOpen) {
+    if (!task.isAlert || !task.isOpen) {
       return;
     }
 
@@ -541,6 +548,99 @@ export class HomeStore {
     }
   }
 
+  private async rebuildConsecutiveStateFromHistory(today: string): Promise<ConsecutiveDaysState> {
+    const startDate = '19700101';
+    const dayInfoList = await this.dayRepo.getDayInfoList(startDate, today);
+    const recoveryList = await this.recoveryRepo.getRecoveryListByDateRange(startDate, today);
+    const dayInfoMap = new Map<string, DayInfo>();
+    const recoveryMap = new Map<string, RecoveryInfo>();
+    const dateSet = new Set<string>();
+
+    for (const info of dayInfoList) {
+      dayInfoMap.set(info.date, info);
+      dateSet.add(info.date);
+    }
+    for (const recovery of recoveryList) {
+      recoveryMap.set(recovery.date, recovery);
+      dateSet.add(recovery.date);
+    }
+
+    const dates = Array.from(dateSet).sort();
+    let maxStreak = 0;
+    let runningStreak = 0;
+    let previousCompletedDate = '';
+
+    for (const date of dates) {
+      const completed = isDayCompletedForStreak(dayInfoMap.get(date) ?? null, recoveryMap.get(date) ?? null);
+      if (!completed) {
+        runningStreak = 0;
+        previousCompletedDate = '';
+        continue;
+      }
+
+      if (previousCompletedDate !== '' && diffDays(previousCompletedDate, date) === 1) {
+        runningStreak++;
+      } else {
+        runningStreak = 1;
+      }
+      previousCompletedDate = date;
+      maxStreak = Math.max(maxStreak, runningStreak);
+    }
+
+    const todayCompleted = isDayCompletedForStreak(dayInfoMap.get(today) ?? this.dayInfo, recoveryMap.get(today) ?? this.todayRecovery);
+    const currentEndDate = todayCompleted ? today : getDateOffset(today, -1);
+    let currentStreak = 0;
+    let cursor = currentEndDate;
+    while (compareDate(cursor, startDate) >= 0) {
+      const completed = isDayCompletedForStreak(dayInfoMap.get(cursor) ?? null, recoveryMap.get(cursor) ?? null);
+      if (!completed) {
+        break;
+      }
+      currentStreak++;
+      cursor = getDateOffset(cursor, -1);
+    }
+
+    const maxBeforeToday = this.calculateMaxStreakBeforeDate(dates, dayInfoMap, recoveryMap, today);
+    return new ConsecutiveDaysState(
+      maxStreak,
+      currentStreak,
+      todayCompleted,
+      null,
+      todayCompleted ? maxBeforeToday : maxStreak
+    );
+  }
+
+  private calculateMaxStreakBeforeDate(
+    dates: string[],
+    dayInfoMap: Map<string, DayInfo>,
+    recoveryMap: Map<string, RecoveryInfo>,
+    endExclusive: string
+  ): number {
+    let maxStreak = 0;
+    let runningStreak = 0;
+    let previousCompletedDate = '';
+
+    for (const date of dates) {
+      if (compareDate(date, endExclusive) >= 0) {
+        break;
+      }
+      const completed = isDayCompletedForStreak(dayInfoMap.get(date) ?? null, recoveryMap.get(date) ?? null);
+      if (!completed) {
+        runningStreak = 0;
+        previousCompletedDate = '';
+        continue;
+      }
+      if (previousCompletedDate !== '' && diffDays(previousCompletedDate, date) === 1) {
+        runningStreak++;
+      } else {
+        runningStreak = 1;
+      }
+      previousCompletedDate = date;
+      maxStreak = Math.max(maxStreak, runningStreak);
+    }
+    return maxStreak;
+  }
+
   private async loadWeekStatusData(centerDate: string): Promise<void> {
     const monday = getMondayOfWeek(centerDate);
     const sunday = getDateOffset(monday, 6);
@@ -731,5 +831,124 @@ export class HomeStore {
     const weekDayInfos = await this.dayRepo.getDayInfoList(startDate, today);
     const weekDayTasks = await this.dayTaskRepo.getDayTasksByDateRange(startDate, today);
     return generateWeeklyReview(weekDayInfos, weekDayTasks);
+  }
+
+  /**
+   * 创建自定义任务。
+   * 生成新 taskId，写入仓储，如启用则为今天创建快照。
+   */
+  async createCustomTask(input: CustomTaskInput): Promise<number> {
+    const taskId = await this.taskRepo.getNextTaskId();
+    const sortOrder = await this.taskRepo.getNextSortOrder();
+
+    const task = new TaskInfo(
+      taskId, true, input.targetValue, input.isAlert,
+      input.isAlert ? input.alertStartTime : '', '',
+      input.isAlert ? input.alertFrequency : '', -1,
+      input.taskName, input.iconKey, input.taskType, input.step,
+      input.unitText, input.pickerType, input.targetOptions,
+      input.scheduleDays, false, false, sortOrder, Date.now()
+    );
+
+    await this.taskRepo.createTask(task);
+
+    // 刷新 allTasks
+    this.allTasks = await this.taskRepo.getAllTasks();
+
+    // 为今天创建快照（如果 scheduleDays 包含今天）
+    const today = getToday();
+    const dayOfWeek = getDayOfWeek(today);
+    if (isScheduledOnDay(task, dayOfWeek)) {
+      const newDayTask = new DayTaskInfo(0, today, taskId, task.targetValue, '', false);
+      newDayTask.id = await this.dayTaskRepo.upsertDayTask(newDayTask);
+    }
+
+    // 刷新今日数据
+    const todayData = await this.loadDayData(today);
+    if (this.selectedDate === today) {
+      this.dayInfo = todayData.dayInfo;
+      this.dayTasks = todayData.dayTasks;
+    }
+
+    // 如果启用了提醒，创建提醒
+    if (task.isAlert) {
+      this.setupReminder(taskId).catch((e: Object) => {
+        console.error('Failed to setup reminder for custom task: ' + e);
+      });
+    }
+
+    return taskId;
+  }
+
+  /**
+   * 更新任务配置（主要用于自定义任务完整配置更新）。
+   */
+  async updateTaskConfig(task: TaskInfo): Promise<void> {
+    await this.taskRepo.updateTask(task);
+    this.allTasks = await this.taskRepo.getAllTasks();
+
+    // 更新今日未完成任务快照的目标值
+    const today = getToday();
+    const dayTask = await this.dayTaskRepo.getDayTask(today, task.taskId);
+    if (dayTask && !dayTask.isDone) {
+      dayTask.targetValue = task.targetValue;
+      await this.dayTaskRepo.updateDayTask(dayTask);
+    }
+
+    // 刷新今日数据
+    const todayData = await this.loadDayData(today);
+    await this.syncTodayCompletionState(todayData.dayInfo);
+    if (this.selectedDate === today) {
+      this.dayInfo = todayData.dayInfo;
+      this.dayTasks = todayData.dayTasks;
+    }
+
+    this.updateCalendarDayStatus(todayData.dayInfo);
+    this.updateMonthViewData(todayData.dayInfo);
+
+    await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks);
+  }
+
+  /**
+   * 归档（软删除）自定义任务。
+   * 取消提醒、从未完成的今日快照移除、刷新首页。
+   */
+  async archiveCustomTask(taskId: number): Promise<void> {
+    const task = this.allTasks.find(t => t.taskId === taskId);
+    if (!task || task.isPreset) {
+      return; // 预设任务不可归档
+    }
+
+    // 取消提醒
+    if (task.reminderId !== -1) {
+      await cancelReminder(task.reminderId);
+      task.reminderId = -1;
+    }
+
+    // 归档
+    await this.taskRepo.archiveTask(taskId);
+
+    // 从未完成的今日快照移除
+    const today = getToday();
+    const todayTask = await this.dayTaskRepo.getDayTask(today, taskId);
+    if (todayTask && !todayTask.isDone) {
+      await this.dayTaskRepo.deleteDayTask(today, taskId);
+    }
+
+    // 刷新 allTasks
+    this.allTasks = await this.taskRepo.getAllTasks();
+
+    // 刷新今日数据
+    const todayData = await this.loadDayData(today);
+    await this.syncTodayCompletionState(todayData.dayInfo);
+    if (this.selectedDate === today) {
+      this.dayInfo = todayData.dayInfo;
+      this.dayTasks = removeInactiveTaskFromDay(todayData.dayTasks, taskId);
+    }
+
+    this.updateCalendarDayStatus(todayData.dayInfo);
+    this.updateMonthViewData(todayData.dayInfo);
+
+    await this.formService.updateAllForms(todayData.dayInfo, this.dayTasks);
   }
 }

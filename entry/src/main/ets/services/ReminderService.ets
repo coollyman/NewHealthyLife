@@ -1,7 +1,7 @@
 import { reminderAgentManager } from '@kit.BackgroundTasksKit';
 import { notificationManager } from '@kit.NotificationKit';
 import { TaskInfo } from '../domain/models/TaskInfo';
-import { getTaskCatalogItem, TaskType } from '../domain/constants/TaskCatalog';
+import { TaskType } from '../domain/constants/TaskCatalog';
 
 export class ReminderIntent {
   shouldSchedule: boolean;
@@ -48,21 +48,20 @@ export function parseAlertFrequency(freq: string): number[] {
 }
 
 export function buildReminderIntent(task: TaskInfo): ReminderIntent {
-  const catalogItem = getTaskCatalogItem(task.taskId);
-  if (!catalogItem || !catalogItem.isAlertEnabled || !task.isOpen) {
+  if (!task.isAlert || !task.isOpen) {
     return new ReminderIntent(false);
   }
 
   let timeStr: string;
   let daysOfWeek: number[] = [];
 
-  if (catalogItem.type === TaskType.TIME) {
-    // 时间类任务（早起、早睡）：从 targetValue 读取
+  if (task.taskType === TaskType.TIME) {
+    // 时间类任务：从 targetValue 读取
     timeStr = task.targetValue;
     // 每日重复
     daysOfWeek = [1, 2, 3, 4, 5, 6, 7];
   } else {
-    // 跑步任务：需要 isAlert + alertStartTime + alertFrequency
+    // 数值/一次性任务：需要 isAlert + alertStartTime + alertFrequency
     if (!task.isAlert) {
       return new ReminderIntent(false);
     }

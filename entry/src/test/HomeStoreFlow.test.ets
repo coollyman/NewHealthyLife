@@ -2,6 +2,7 @@ import { describe, beforeAll, it, expect } from '@ohos/hypium';
 import { HomeStore, HomeStoreDeps } from '../main/ets/viewmodel/HomeStore';
 import { createDefaultTaskInfoList } from '../main/ets/domain/constants/TaskCatalog';
 import { getToday, getDateOffset } from '../main/ets/domain/utils/DateUtils';
+import { ConsecutiveDaysState } from '../main/ets/domain/rules/ConsecutiveDaysRules';
 import {
   FakeTaskRepo,
   FakeDayInfoRepo,
@@ -442,6 +443,18 @@ export default function homeStoreFlowTest() {
       // 偏好里连续天数应恢复
       expect(store2.consecutiveState.currentConsecutiveDays).assertEqual(1);
       expect(store2.consecutiveState.maxConsecutiveDays).assertEqual(1);
+    });
+
+    it('initAppData_rebuildsStreakFromHistoryWhenPrefIsStale', 0, async () => {
+      const deps = makeDeps();
+      await deps.prefRepo.saveConsecutiveState(new ConsecutiveDaysState(3, 3, false, null, 3));
+
+      const store = makeDefaultStore(deps);
+      await store.initAppData();
+
+      expect(store.consecutiveState.currentConsecutiveDays).assertEqual(0);
+      expect(store.consecutiveState.maxConsecutiveDays).assertEqual(0);
+      expect(store.consecutiveState.currentDayStatus).assertFalse();
     });
   });
 }

@@ -1,4 +1,4 @@
-import { TaskInfo } from '../../main/ets/domain/models/TaskInfo';
+import { TaskInfo, CUSTOM_TASK_ID_START } from '../../main/ets/domain/models/TaskInfo';
 import { DayInfo } from '../../main/ets/domain/models/DayInfo';
 import { DayTaskInfo } from '../../main/ets/domain/models/DayTaskInfo';
 import { RecoveryInfo } from '../../main/ets/domain/models/RecoveryInfo';
@@ -38,7 +38,7 @@ export class FakeTaskRepo implements ITaskRepository {
     for (const task of values) {
       result.push(task.deepClone());
     }
-    result.sort((a: TaskInfo, b: TaskInfo): number => a.taskId - b.taskId);
+    result.sort((a: TaskInfo, b: TaskInfo): number => a.sortOrder - b.sortOrder);
     return result;
   }
 
@@ -46,7 +46,7 @@ export class FakeTaskRepo implements ITaskRepository {
     const result: TaskInfo[] = [];
     const tasks = await this.getAllTasks();
     for (const task of tasks) {
-      if (task.isOpen) {
+      if (task.isOpen && !task.isArchived) {
         result.push(task);
       }
     }
@@ -56,6 +56,43 @@ export class FakeTaskRepo implements ITaskRepository {
   async getTaskById(taskId: number): Promise<TaskInfo | null> {
     const t = this.tasks.get(taskId);
     return t ? t.deepClone() : null;
+  }
+
+  async createTask(task: TaskInfo): Promise<number> {
+    this.tasks.set(task.taskId, task.deepClone());
+    return task.taskId;
+  }
+
+  async archiveTask(taskId: number): Promise<void> {
+    const t = this.tasks.get(taskId);
+    if (t) {
+      const updated = t.deepClone();
+      updated.isArchived = true;
+      updated.isOpen = false;
+      this.tasks.set(taskId, updated);
+    }
+  }
+
+  async getNextTaskId(): Promise<number> {
+    let maxId = CUSTOM_TASK_ID_START - 1;
+    const values: TaskInfo[] = Array.from(this.tasks.values());
+    for (const t of values) {
+      if (t.taskId >= CUSTOM_TASK_ID_START && t.taskId > maxId) {
+        maxId = t.taskId;
+      }
+    }
+    return maxId + 1;
+  }
+
+  async getNextSortOrder(): Promise<number> {
+    let maxOrder = 0;
+    const values: TaskInfo[] = Array.from(this.tasks.values());
+    for (const t of values) {
+      if (t.sortOrder > maxOrder) {
+        maxOrder = t.sortOrder;
+      }
+    }
+    return maxOrder + 1;
   }
 
   /** 测试辅助：直接注入任务（不经 ensureDefaultTasks） */

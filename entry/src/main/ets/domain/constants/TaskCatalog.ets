@@ -34,6 +34,8 @@ export interface TaskCatalogItem {
   unit: Resource;          // 单位
   isAlertEnabled: boolean; // 是否支持提醒
   defaultTarget: string;   // 默认目标值
+  iconKey: string;         // 图标 key（用于自定义图标白名单映射）
+  unitText: string;        // 单位文本（非 Resource，直接字符串）
 }
 
 /**
@@ -52,7 +54,9 @@ export const TASK_CATALOG: TaskCatalogItem[] = [
     pickerRange: [],
     unit: $r('app.string.unit_pre_day'),
     isAlertEnabled: true,
-    defaultTarget: '08:00'
+    defaultTarget: '08:00',
+    iconKey: 'getup',
+    unitText: '/ 天'
   },
   {
     taskId: 1,
@@ -66,7 +70,9 @@ export const TASK_CATALOG: TaskCatalogItem[] = [
     pickerRange: ['0.5', '1', '1.5', '2', '2.5', '3'],
     unit: $r('app.string.unit_liter'),
     isAlertEnabled: false,
-    defaultTarget: '1'
+    defaultTarget: '1',
+    iconKey: 'drink',
+    unitText: 'L'
   },
   {
     taskId: 2,
@@ -80,7 +86,9 @@ export const TASK_CATALOG: TaskCatalogItem[] = [
     pickerRange: ['1', '2', '3', '4', '5'],
     unit: $r('app.string.unit_number'),
     isAlertEnabled: false,
-    defaultTarget: '1'
+    defaultTarget: '1',
+    iconKey: 'apple',
+    unitText: '个'
   },
   {
     taskId: 3,
@@ -94,7 +102,9 @@ export const TASK_CATALOG: TaskCatalogItem[] = [
     pickerRange: ['1', '2', '3'],
     unit: $r('app.string.unit_times'),
     isAlertEnabled: false,
-    defaultTarget: '1'
+    defaultTarget: '1',
+    iconKey: 'smile',
+    unitText: '次'
   },
   {
     taskId: 4,
@@ -108,7 +118,9 @@ export const TASK_CATALOG: TaskCatalogItem[] = [
     pickerRange: ['1', '2', '3'],
     unit: $r('app.string.unit_times'),
     isAlertEnabled: false,
-    defaultTarget: '1'
+    defaultTarget: '1',
+    iconKey: 'brush',
+    unitText: '次'
   },
   {
     taskId: 5,
@@ -122,7 +134,9 @@ export const TASK_CATALOG: TaskCatalogItem[] = [
     pickerRange: [],
     unit: $r('app.string.unit_pre_day'),
     isAlertEnabled: true,
-    defaultTarget: '23:00'
+    defaultTarget: '23:00',
+    iconKey: 'sleep',
+    unitText: '/ 天'
   },
   {
     taskId: 6,
@@ -136,7 +150,9 @@ export const TASK_CATALOG: TaskCatalogItem[] = [
     pickerRange: ['1', '2', '3', '5'],
     unit: $r('app.string.unit_km'),
     isAlertEnabled: true,
-    defaultTarget: '1'
+    defaultTarget: '1',
+    iconKey: 'run',
+    unitText: '公里'
   }
 ];
 
@@ -148,10 +164,13 @@ export function getTaskCatalogItem(taskId: number): TaskCatalogItem | undefined 
 }
 
 /**
- * 生成默认任务配置列表（全部关闭）
+ * 生成默认任务配置列表（全部关闭，填充完整元数据）
  */
 export function createDefaultTaskInfoList(): TaskInfo[] {
   return TASK_CATALOG.map(item => new TaskInfo(
-    item.taskId, false, item.defaultTarget, false, '', '', '', -1
+    item.taskId, false, item.defaultTarget, false, '', '', '', -1,
+    '', item.iconKey, item.type, item.step, item.unitText,
+    item.pickerType, item.pickerRange.join(','), '',
+    true, false, item.taskId, 0
   ));
 }

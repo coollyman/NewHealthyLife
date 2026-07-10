@@ -79,9 +79,9 @@ export struct AchievementPage {
             }
           }, (threshold: number) => threshold.toString())
         }
-        .columnsTemplate('1fr 1fr 2fr')
-        .rowsGap(16)
-        .columnsGap(8)
+        .columnsTemplate('1fr 1fr 1fr')
+        .rowsGap(18)
+        .columnsGap(12)
         .padding(16)
         .layoutWeight(1)
       }
@@ -133,14 +133,17 @@ export struct AchievementPage {
   badgeItem(threshold: number) {
     Column() {
       Image(this.getBadgeIcon(threshold))
-        .width(80)
-        .height(80)
+        .width(76)
+        .height(84)
+        .objectFit(ImageFit.Contain)
 
       Text(`连续${threshold}天`)
         .fontSize(12)
         .fontColor($r('app.color.text_secondary'))
         .margin({ top: 8 })
     }
+    .width('100%')
+    .height(120)
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
   }

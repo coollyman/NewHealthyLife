@@ -1,6 +1,7 @@
 import { HomeStore } from '../../viewmodel/HomeStore';
 import { DayTaskInfo } from '../../domain/models/DayTaskInfo';
-import { getTaskCatalogItem, TaskType } from '../../domain/constants/TaskCatalog';
+import { TaskType } from '../../domain/constants/TaskCatalog';
+import { getTaskDisplayMeta, getIconResource } from '../../domain/constants/TaskDisplayMeta';
 import { isToday } from '../../domain/utils/DateUtils';
 import { TaskClockDialog } from '../dialog/TaskClockDialog';
 import { AchievementUnlockDialog } from '../dialog/AchievementUnlockDialog';
@@ -129,34 +130,51 @@ export struct TaskList {
   }
 
   private getTaskIcon(taskId: number): Resource {
-    const item = getTaskCatalogItem(taskId);
-    return item ? item.icon : $r('app.media.ic_task_smile');
+    const task = this.homeStore.allTasks.find(t => t.taskId === taskId);
+    if (!task) {
+      return $r('app.media.ic_task_smile');
+    }
+    const meta = getTaskDisplayMeta(task);
+    return getIconResource(meta.iconKey);
   }
 
   private getTaskName(taskId: number): string {
-    const item = getTaskCatalogItem(taskId);
-    if (!item) return '';
-    try {
-      return getContext(this).resourceManager.getStringSync(item.name);
-    } catch (e) {
+    const task = this.homeStore.allTasks.find(t => t.taskId === taskId);
+    if (!task) {
       return '';
     }
+    const meta = getTaskDisplayMeta(task);
+    if (meta.isPreset) {
+      // 预设任务用 Resource 解析
+      try {
+        const catalog = getTaskDisplayMeta(task);
+        // catalog 的 taskName 是 Resource id 字符串
+        const resource = $r(`app.string.${meta.taskName}`);
+        return getContext(this).resourceManager.getStringSync(resource);
+      } catch (e) {
+        return meta.taskName;
+      }
+    }
+    return meta.taskName;
   }
 
   private getTaskProgress(dayTask: DayTaskInfo): string {
-    const item = getTaskCatalogItem(dayTask.taskId);
-    if (!item) return '';
+    const task = this.homeStore.allTasks.find(t => t.taskId === dayTask.taskId);
+    if (!task) {
+      return '';
+    }
+    const meta = getTaskDisplayMeta(task);
 
     if (dayTask.isDone) {
       return '已完成';
     }
 
-    if (item.type === TaskType.VALUE) {
+    if (meta.taskType === TaskType.VALUE) {
       const fin = parseFloat(dayTask.finValue) || 0;
       const target = parseFloat(dayTask.targetValue) || 0;
-      return `${fin > 0 ? fin : '--'} / ${target} ${this.getUnitText(item.unit)}`;
+      return `${fin > 0 ? fin : '--'} / ${target} ${meta.unitText}`;
     }
-    return `${dayTask.finValue || '--'} / ${dayTask.targetValue} ${this.getUnitText(item.unit)}`;
+    return `${dayTask.finValue || '--'} / ${dayTask.targetValue} ${meta.unitText}`;
   }
 
   private getProgressPercent(dayTask: DayTaskInfo): number {
@@ -164,8 +182,12 @@ export struct TaskList {
       return 100;
     }
 
-    const item = getTaskCatalogItem(dayTask.taskId);
-    if (!item || item.type !== TaskType.VALUE) {
+    const task = this.homeStore.allTasks.find(t => t.taskId === dayTask.taskId);
+    if (!task) {
+      return 0;
+    }
+    const meta = getTaskDisplayMeta(task);
+    if (meta.taskType !== TaskType.VALUE) {
       return 0;
     }
 
@@ -186,14 +208,6 @@ export struct TaskList {
     return $r('app.color.task_progress_active');
   }
 
-  private getUnitText(unit: Resource): string {
-    try {
-      return getContext(this).resourceManager.getStringSync(unit);
-    } catch (e) {
-      return '';
-    }
-  }
-
   private getReadOnlyStatusText(): Resource {
     return isToday(this.homeStore.selectedDate) ? $r('app.string.clock_in') : $r('app.string.not_done');
   }
@@ -203,6 +217,7 @@ export struct TaskList {
       this.dialogController = new CustomDialogController({
         builder: TaskClockDialog({
           dayTask: this.selectedTask!,
+          homeStore: this.homeStore,
           onConfirm: () => {
             this.handleCheckin();
           }

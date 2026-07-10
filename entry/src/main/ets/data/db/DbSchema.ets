@@ -29,7 +29,28 @@ export class DbSchema {
     { name: 'alertStartTime', type: 'TEXT', notNull: false, primaryKey: false, autoIncrement: false },
     { name: 'alertEndTime', type: 'TEXT', notNull: false, primaryKey: false, autoIncrement: false },
     { name: 'alertFrequency', type: 'TEXT', notNull: false, primaryKey: false, autoIncrement: false },
-    { name: 'reminderId', type: 'INTEGER', notNull: true, primaryKey: false, autoIncrement: false }
+    { name: 'reminderId', type: 'INTEGER', notNull: true, primaryKey: false, autoIncrement: false },
+    { name: 'taskName', type: 'TEXT', notNull: false, primaryKey: false, autoIncrement: false },
+    { name: 'iconKey', type: 'TEXT', notNull: false, primaryKey: false, autoIncrement: false },
+    { name: 'taskType', type: 'TEXT', notNull: false, primaryKey: false, autoIncrement: false },
+    { name: 'step', type: 'TEXT', notNull: false, primaryKey: false, autoIncrement: false },
+    { name: 'unitText', type: 'TEXT', notNull: false, primaryKey: false, autoIncrement: false },
+    { name: 'pickerType', type: 'TEXT', notNull: false, primaryKey: false, autoIncrement: false },
+    { name: 'targetOptions', type: 'TEXT', notNull: false, primaryKey: false, autoIncrement: false },
+    { name: 'scheduleDays', type: 'TEXT', notNull: false, primaryKey: false, autoIncrement: false },
+    { name: 'isPreset', type: 'INTEGER', notNull: false, primaryKey: false, autoIncrement: false },
+    { name: 'isArchived', type: 'INTEGER', notNull: false, primaryKey: false, autoIncrement: false },
+    { name: 'sortOrder', type: 'INTEGER', notNull: false, primaryKey: false, autoIncrement: false },
+    { name: 'createdAt', type: 'INTEGER', notNull: false, primaryKey: false, autoIncrement: false }
+  ];
+
+  /**
+   * 旧版 schema 缺失的列名（用于 ALTER TABLE 迁移）
+   */
+  static readonly TASK_MIGRATION_COLUMNS: string[] = [
+    'taskName', 'iconKey', 'taskType', 'step', 'unitText',
+    'pickerType', 'targetOptions', 'scheduleDays',
+    'isPreset', 'isArchived', 'sortOrder', 'createdAt'
   ];
 
   // DayInfo 表列

@@ -177,6 +177,21 @@ struct EditTaskPage {
           .onClick(() => {
             this.onComplete();
           })
+
+        // 删除按钮（仅自定义任务）
+        if (this.isCustomTask()) {
+          Button('删除此习惯')
+            .type(ButtonType.Capsule)
+            .backgroundColor($r('app.color.bg_page'))
+            .fontColor('#E24B4A')
+            .border({ width: 1, color: '#E24B4A' })
+            .width('90%')
+            .height(44)
+            .margin({ bottom: 24 })
+            .onClick(() => {
+              this.onArchive();
+            })
+        }
           }
           .width('100%')
           .justifyContent(FlexAlign.Start)
@@ -316,6 +331,23 @@ struct EditTaskPage {
       }
     }
     this.alertFrequency = parts.join(',');
+  }
+
+  private isCustomTask(): boolean {
+    const task = (this.homeStore?.allTasks ?? []).find(t => t.taskId === this.taskId);
+    return task ? !task.isPreset : false;
+  }
+
+  private async onArchive(): Promise<void> {
+    try {
+      await this.homeStore.archiveCustomTask(this.taskId);
+      promptAction.showToast({ message: '已删除' });
+    } catch (e) {
+      console.error('EditTaskPage onArchive error: ' + e);
+      promptAction.showToast({ message: '操作失败' });
+    } finally {
+      router.back();
+    }
   }
 
   private async acceptGoalSuggestion(): Promise<void> {

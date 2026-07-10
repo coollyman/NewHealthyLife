@@ -2,6 +2,8 @@ import { router } from '@kit.ArkUI';
 import { AppConstants } from '../domain/constants/AppConstants';
 import { ProfileStore } from '../viewmodel/ProfileStore';
 import { formatProfileSummary } from '../domain/models/ProfileInfo';
+import { HomeStore } from '../viewmodel/HomeStore';
+import { getUserLevelLabel } from '../domain/rules/UserLevelRules';
 
 /**
  * 我的页面
@@ -9,16 +11,23 @@ import { formatProfileSummary } from '../domain/models/ProfileInfo';
 @Component
 export struct MinePage {
   @StorageLink('profileStore') profileStore: ProfileStore = new ProfileStore();
+  @StorageLink('homeStore') homeStore: HomeStore = new HomeStore();
 
   async aboutToAppear(): Promise<void> {
     const stored = AppStorage.get<ProfileStore>('profileStore');
     if (stored) {
       this.profileStore = stored;
       await this.profileStore.reload();
-      return;
+    } else {
+      await this.profileStore.init(getContext(this));
+      AppStorage.setOrCreate<ProfileStore>('profileStore', this.profileStore);
     }
-    await this.profileStore.init(getContext(this));
-    AppStorage.setOrCreate<ProfileStore>('profileStore', this.profileStore);
+
+    // 确保 homeStore 已初始化（获取连续天数）
+    const storedHome = AppStorage.get<HomeStore>('homeStore');
+    if (storedHome) {
+      this.homeStore = storedHome;
+    }
   }
 
   build() {
@@ -43,7 +52,7 @@ export struct MinePage {
             .fontWeight(FontWeight.Medium)
             .fontColor($r('app.color.text_primary'))
 
-          Text($r('app.string.user_level'))
+          Text(getUserLevelLabel(this.homeStore.consecutiveState.maxConsecutiveDays))
             .fontSize(14)
             .fontColor($r('app.color.user_level_font_color'))
             .backgroundColor($r('app.color.user_level_bg_color'))

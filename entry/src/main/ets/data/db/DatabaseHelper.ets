@@ -19,7 +19,7 @@ export class DatabaseHelper {
   }
 
   /**
-   * 初始化数据库，创建所有表
+   * 初始化数据库，创建所有表并执行 schema 迁移
    */
   async init(context: Context): Promise<void> {
     const config: relationalStore.StoreConfig = {
@@ -35,6 +35,61 @@ export class DatabaseHelper {
 
     for (const sql of DbSchema.getAllIndexSqls()) {
       await this.rdbStore.executeSql(sql);
+    }
+
+    // Schema 迁移：为旧版 taskInfo 表补充缺失列
+    await this.migrateTaskTable();
+  }
+
+  /**
+   * 迁移 taskInfo 表：检测缺失列并 ALTER TABLE ADD COLUMN
+   */
+  private async migrateTaskTable(): Promise<void> {
+    if (this.rdbStore === null) {
+      return;
+    }
+
+    const store = this.rdbStore;
+    const predicates = new relationalStore.RdbPredicates(DbSchema.TABLE_TASK);
+    const resultSet = await store.query(predicates);
+
+    // 获取已有列名
+    const columnNames: string[] = [];
+    for (let i = 0; i < resultSet.columnCount; i++) {
+      columnNames.push(resultSet.getColumnName(i));
+    }
+    resultSet.close();
+
+    for (const col of DbSchema.TASK_MIGRATION_COLUMNS) {
+      if (!columnNames.includes(col)) {
+        try {
+          await store.executeSql(`ALTER TABLE ${DbSchema.TABLE_TASK} ADD COLUMN ${col} TEXT`);
+          console.info('Schema migrated: added column ' + col);
+        } catch (e) {
+          console.error('Schema migration failed for column ' + col + ': ' + e);
+        }
+      }
+    }
+
+    // 回填默认值
+    try {
+      await store.executeSql(
+        `UPDATE ${DbSchema.TABLE_TASK} SET isPreset = '1' WHERE isPreset IS NULL AND taskId < 100`
+      );
+      await store.executeSql(
+        `UPDATE ${DbSchema.TABLE_TASK} SET isPreset = '0' WHERE isPreset IS NULL AND taskId >= 100`
+      );
+      await store.executeSql(
+        `UPDATE ${DbSchema.TABLE_TASK} SET isArchived = '0' WHERE isArchived IS NULL`
+      );
+      await store.executeSql(
+        `UPDATE ${DbSchema.TABLE_TASK} SET sortOrder = taskId WHERE sortOrder IS NULL`
+      );
+      await store.executeSql(
+        `UPDATE ${DbSchema.TABLE_TASK} SET createdAt = '0' WHERE createdAt IS NULL`
+      );
+    } catch (e) {
+      console.error('Schema migration backfill failed: ' + e);
     }
   }
 

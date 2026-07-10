@@ -3,6 +3,8 @@ import { DayTaskInfo } from '../models/DayTaskInfo';
 import { TaskInfo } from '../models/TaskInfo';
 import { createDayTaskFromTaskInfo } from './TaskRules';
 import { countFinishedTasks } from './TaskRules';
+import { getDayOfWeek } from '../utils/DateUtils';
+import { isScheduledOnDay } from '../constants/TaskDisplayMeta';
 
 /**
  * 日期初始化结果
@@ -23,13 +25,15 @@ export class DayInitResult {
 
 /**
  * 为指定日期创建初始 DayInfo 和 DayTask 列表
+ * 只为 scheduleDays 包含当天星期的任务创建快照
  */
 export function initializeDayData(
   date: string,
   activeTasks: TaskInfo[]
 ): DayInitResult {
+  const dayOfWeek = getDayOfWeek(date);
   const dayTasks: DayTaskInfo[] = activeTasks
-    .filter(t => t.isOpen)
+    .filter(t => t.isOpen && !t.isArchived && isScheduledOnDay(t, dayOfWeek))
     .map(t => createDayTaskFromTaskInfo(date, t));
 
   const dayInfo = new DayInfo(date, dayTasks.length, 0);
@@ -38,6 +42,7 @@ export function initializeDayData(
 
 /**
  * 确保启用任务都有对应的当日快照
+ * 只为 scheduleDays 包含当天星期的任务补快照
  */
 export function ensureDayTaskSnapshots(
   date: string,
@@ -46,9 +51,10 @@ export function ensureDayTaskSnapshots(
 ): DayTaskInfo[] {
   const result: DayTaskInfo[] = [...existingDayTasks];
   const existingTaskIds = new Set<number>(existingDayTasks.map(t => t.taskId));
+  const dayOfWeek = getDayOfWeek(date);
 
   for (const task of activeTasks) {
-    if (task.isOpen && !existingTaskIds.has(task.taskId)) {
+    if (task.isOpen && !task.isArchived && isScheduledOnDay(task, dayOfWeek) && !existingTaskIds.has(task.taskId)) {
       result.push(createDayTaskFromTaskInfo(date, task));
     }
   }

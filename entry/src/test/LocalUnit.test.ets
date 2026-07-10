@@ -139,14 +139,16 @@ export default function localUnitTest() {
     it('checkinTask_onceTaskCompletesImmediately', 0, () => {
       // smile is now VALUE with step=1, but target=1 → single checkin completes
       const t = new DayTaskInfo(1, '20260101', 3, '1', '', false);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(3, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '1', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       expect(r.isDone).assertTrue();
       expect(r.finValue).assertEqual('1');
     });
 
     it('checkinTask_timeTaskCompletesImmediately', 0, () => {
       const t = new DayTaskInfo(1, '20260101', 0, '08:00', '', false);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(0, false, '08:00', false, '', '', '', -1, '', '', TaskType.TIME, '', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       expect(r.isDone).assertTrue();
       expect(r.finValue).assertEqual('08:00');
     });
@@ -154,14 +156,16 @@ export default function localUnitTest() {
     // VALUE 任务（taskId 1 = drink, step=0.5）
     it('checkinTask_valueTaskAccumulatesStep', 0, () => {
       const t = new DayTaskInfo(1, '20260101', 1, '1', '0', false);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(1, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '0.5', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       expect(r.isDone).assertFalse();
       expect(r.finValue).assertEqual('0.5');
     });
 
     it('checkinTask_valueTaskReachesTarget', 0, () => {
       const t = new DayTaskInfo(1, '20260101', 1, '1', '0.5', false);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(1, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '0.5', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       expect(r.isDone).assertTrue();
       expect(r.finValue).assertEqual('1');
     });
@@ -169,13 +173,15 @@ export default function localUnitTest() {
     it('checkinTask_valueTaskClampsFinValueToTarget', 0, () => {
       // target=1, step=0.5, already 0.5 → 1.0 done
       const t = new DayTaskInfo(1, '20260101', 1, '1', '0.5', false);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(1, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '0.5', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       expect(r.finValue).assertEqual('1');
     });
 
     it('checkinTask_doneTaskIsIdempotent', 0, () => {
       const t = new DayTaskInfo(1, '20260101', 0, '08:00', '08:00', true);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(0, false, '08:00', false, '', '', '', -1, '', '', TaskType.TIME, '', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       // 已完成不重复打卡：返回对象状态不变
       expect(r.isDone).assertTrue();
       expect(r.finValue).assertEqual('08:00');
@@ -183,38 +189,41 @@ export default function localUnitTest() {
 
     // 微笑/刷牙 target=3 需 3 次完成
     it('checkinTask_smileTarget3_requiresThreeCheckins', 0, () => {
+      const taskInfo = new TaskInfo(3, false, '3', false, '', '', '', -1, '', '', TaskType.VALUE, '1', '', PickerType.NONE, '', '', false, false, 0, 0);
       let t = new DayTaskInfo(1, '20260101', 3, '3', '0', false);
-      let r = checkinTask(t);
+      let r = checkinTask(t, taskInfo);
       expect(r.isDone).assertFalse();
       expect(r.finValue).assertEqual('1');
-      r = checkinTask(r);
+      r = checkinTask(r, taskInfo);
       expect(r.isDone).assertFalse();
       expect(r.finValue).assertEqual('2');
-      r = checkinTask(r);
+      r = checkinTask(r, taskInfo);
       expect(r.isDone).assertTrue();
       expect(r.finValue).assertEqual('3');
     });
 
     it('checkinTask_brushTarget3_requiresThreeCheckins', 0, () => {
+      const taskInfo = new TaskInfo(4, false, '3', false, '', '', '', -1, '', '', TaskType.VALUE, '1', '', PickerType.NONE, '', '', false, false, 0, 0);
       let t = new DayTaskInfo(1, '20260101', 4, '3', '0', false);
-      let r = checkinTask(t);
+      let r = checkinTask(t, taskInfo);
       expect(r.isDone).assertFalse();
       expect(r.finValue).assertEqual('1');
-      r = checkinTask(r);
+      r = checkinTask(r, taskInfo);
       expect(r.isDone).assertFalse();
       expect(r.finValue).assertEqual('2');
-      r = checkinTask(r);
+      r = checkinTask(r, taskInfo);
       expect(r.isDone).assertTrue();
       expect(r.finValue).assertEqual('3');
     });
 
     // 跑步 target=2 需 2 次完成
     it('checkinTask_runTarget2_requiresTwoCheckins', 0, () => {
+      const taskInfo = new TaskInfo(6, false, '2', false, '', '', '', -1, '', '', TaskType.VALUE, '1', '', PickerType.NONE, '', '', false, false, 0, 0);
       let t = new DayTaskInfo(1, '20260101', 6, '2', '0', false);
-      let r = checkinTask(t);
+      let r = checkinTask(t, taskInfo);
       expect(r.isDone).assertFalse();
       expect(r.finValue).assertEqual('1');
-      r = checkinTask(r);
+      r = checkinTask(r, taskInfo);
       expect(r.isDone).assertTrue();
       expect(r.finValue).assertEqual('2');
     });

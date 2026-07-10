@@ -9,6 +9,8 @@ import goalSuggestionTest from './GoalSuggestion.test';
 import recoveryTest from './Recovery.test';
 import achievementUpgradeTest from './AchievementUpgrade.test';
 import weeklyReviewTest from './WeeklyReview.test';
+import userLevelTest from './UserLevel.test';
+import customTaskTest from './CustomTask.test';
 import profileStoreTest from './ProfileStore.test';
 import { getDateOffset, compareDate, getThreeWeekWindow } from '../main/ets/domain/utils/DateUtils';
 import { DayInfo } from '../main/ets/domain/models/DayInfo';
@@ -27,6 +29,8 @@ export default function testsuite() {
   recoveryTest();
   achievementUpgradeTest();
   weeklyReviewTest();
+  userLevelTest();
+  customTaskTest();
   profileStoreTest();
 
   describe('HistoryAndPreviewDates', () => {

@@ -3,8 +3,10 @@ import { FormInfoRepository } from '../data/db/FormInfoRepository';
 import { FormInfo } from '../domain/models/FormInfo';
 import { DayInfo } from '../domain/models/DayInfo';
 import { DayTaskInfo } from '../domain/models/DayTaskInfo';
+import { TaskInfo } from '../domain/models/TaskInfo';
 import { AppConstants } from '../domain/constants/AppConstants';
 import { IFormService, FormInfoLike } from '../domain/ports/RepositoryPorts';
+import { getTaskDisplayMeta } from '../domain/constants/TaskDisplayMeta';
 
 /**
  * 卡片任务条目
@@ -37,23 +39,29 @@ export class CardFormData {
   percentage: number = 0;
 }
 
-export function getCardTaskName(taskId: number): string {
-  switch (taskId) {
-    case 0: return '早起';
-    case 1: return '喝水';
-    case 2: return '吃苹果';
-    case 3: return '每日微笑';
-    case 4: return '刷牙';
-    case 5: return '早睡';
-    case 6: return '跑步';
-    default: return '';
+export function getCardTaskName(taskId: number, allTasks: TaskInfo[] = []): string {
+  const task = allTasks.find(t => t.taskId === taskId);
+  if (!task) {
+    // 兜底硬编码（兼容旧数据）
+    switch (taskId) {
+      case 0: return '早起';
+      case 1: return '喝水';
+      case 2: return '吃苹果';
+      case 3: return '每日微笑';
+      case 4: return '刷牙';
+      case 5: return '早睡';
+      case 6: return '跑步';
+      default: return '任务' + taskId;
+    }
   }
+  const meta = getTaskDisplayMeta(task);
+  return meta.taskName;
 }
 
-export function buildCardFormData(dayInfo: DayInfo, dayTasks: DayTaskInfo[]): CardFormData {
+export function buildCardFormData(dayInfo: DayInfo, dayTasks: DayTaskInfo[], allTasks: TaskInfo[] = []): CardFormData {
   const taskList: CardTaskItem[] = dayTasks.map(dt => new CardTaskItem(
     dt.taskId,
-    getCardTaskName(dt.taskId),
+    getCardTaskName(dt.taskId, allTasks),
     dt.isDone,
     dt.finValue,
     dt.targetValue

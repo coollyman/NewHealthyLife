@@ -8,6 +8,7 @@ import {
 } from '../main/ets/domain/rules/DayInitRules';
 import { DayInfo } from '../main/ets/domain/models/DayInfo';
 import { TaskInfo } from '../main/ets/domain/models/TaskInfo';
+import { TaskType, PickerType } from '../main/ets/domain/constants/TaskCatalog';
 import {
   ConsecutiveDaysState,
   onAllTasksCompleted,
@@ -23,14 +24,16 @@ export default function numericCheckinTest() {
     // taskId=1 drink: step=0.5, default target=1
     it('value_fromZero_reachesHalfNotDone', 0, () => {
       const t = new DayTaskInfo(1, '20260101', 1, '1', '0', false);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(1, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '0.5', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       expect(r.isDone).assertFalse();
       expect(r.finValue).assertEqual('0.5');
     });
 
     it('value_fromHalf_reachesTargetDone', 0, () => {
       const t = new DayTaskInfo(1, '20260101', 1, '1', '0.5', false);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(1, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '0.5', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       expect(r.isDone).assertTrue();
       expect(r.finValue).assertEqual('1');
     });
@@ -38,31 +41,35 @@ export default function numericCheckinTest() {
     it('value_doesNotExceedTarget', 0, () => {
       // 0.5 + 0.5 = 1 → clamp to target
       const t = new DayTaskInfo(1, '20260101', 1, '1', '0.5', false);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(1, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '0.5', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       expect(r.finValue).assertEqual('1');
     });
 
     // taskId=2 apple: step=1, default target=1
     it('apple_singleCheckinCompletes', 0, () => {
       const t = new DayTaskInfo(1, '20260101', 2, '1', '0', false);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(2, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '1', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       expect(r.isDone).assertTrue();
       expect(r.finValue).assertEqual('1');
     });
 
     it('apple_target2_requiresTwoCheckins', 0, () => {
+      const taskInfo = new TaskInfo(2, false, '2', false, '', '', '', -1, '', '', TaskType.VALUE, '1', '', PickerType.NONE, '', '', false, false, 0, 0);
       const t1 = new DayTaskInfo(1, '20260101', 2, '2', '0', false);
-      const r1 = checkinTask(t1);
+      const r1 = checkinTask(t1, taskInfo);
       expect(r1.isDone).assertFalse();
       expect(r1.finValue).assertEqual('1');
-      const r2 = checkinTask(r1);
+      const r2 = checkinTask(r1, taskInfo);
       expect(r2.isDone).assertTrue();
       expect(r2.finValue).assertEqual('2');
     });
 
     it('value_doneTaskCheckinIsIdempotent', 0, () => {
       const t = new DayTaskInfo(1, '20260101', 1, '1', '1', true);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(1, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '0.5', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       expect(r.isDone).assertTrue();
       expect(r.finValue).assertEqual('1');
     });
@@ -72,7 +79,8 @@ export default function numericCheckinTest() {
     // taskId=3 smile: now VALUE with step=1, target=1
     it('once_completesInOneCheckin', 0, () => {
       const t = new DayTaskInfo(1, '20260101', 3, '1', '0', false);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(3, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '1', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       expect(r.isDone).assertTrue();
       expect(r.finValue).assertEqual('1');
     });
@@ -80,13 +88,15 @@ export default function numericCheckinTest() {
     // taskId=4 brush: now VALUE with step=1, target=1
     it('once_brushCompletesInOneCheckin', 0, () => {
       const t = new DayTaskInfo(1, '20260101', 4, '1', '0', false);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(4, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '1', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       expect(r.isDone).assertTrue();
     });
 
     it('once_doneTaskCheckinIsIdempotent', 0, () => {
       const t = new DayTaskInfo(1, '20260101', 3, '1', '1', true);
-      const r = checkinTask(t);
+      const taskInfo = new TaskInfo(3, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '1', '', PickerType.NONE, '', '', false, false, 0, 0);
+      const r = checkinTask(t, taskInfo);
       expect(r.isDone).assertTrue();
       expect(canCheckin(r)).assertFalse();
     });

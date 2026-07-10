@@ -2,6 +2,7 @@ import { describe, it, expect } from '@ohos/hypium';
 import { DayInfo } from '../main/ets/domain/models/DayInfo';
 import { DayTaskInfo } from '../main/ets/domain/models/DayTaskInfo';
 import { TaskInfo } from '../main/ets/domain/models/TaskInfo';
+import { TaskType, PickerType } from '../main/ets/domain/constants/TaskCatalog';
 import { recalculateDayInfo, removeInactiveTaskFromDay } from '../main/ets/domain/rules/DayInitRules';
 import { checkinTask } from '../main/ets/domain/rules/TaskRules';
 import { getDateOffset, getMondayOfWeek, getThreeWeekWindow } from '../main/ets/domain/utils/DateUtils';
@@ -37,8 +38,9 @@ export default function regressionBugScanTest() {
   describe('RegressionBugScan_NumericCheckinEdges', () => {
     it('checkinTask_clampsValueThatWouldOvershootTarget', 0, () => {
       const task = new DayTaskInfo(1, '20260709', 1, '1', '0.75', false);
+      const taskInfo = new TaskInfo(1, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '0.5', '', PickerType.NONE, '', '', false, false, 0, 0);
 
-      const result = checkinTask(task);
+      const result = checkinTask(task, taskInfo);
 
       expect(result.isDone).assertTrue();
       expect(result.finValue).assertEqual('1');
@@ -46,8 +48,9 @@ export default function regressionBugScanTest() {
 
     it('checkinTask_treatsInvalidProgressAsZero', 0, () => {
       const task = new DayTaskInfo(1, '20260709', 1, '1', 'bad', false);
+      const taskInfo = new TaskInfo(1, false, '1', false, '', '', '', -1, '', '', TaskType.VALUE, '0.5', '', PickerType.NONE, '', '', false, false, 0, 0);
 
-      const result = checkinTask(task);
+      const result = checkinTask(task, taskInfo);
 
       expect(result.isDone).assertFalse();
       expect(result.finValue).assertEqual('0.5');
@@ -55,8 +58,9 @@ export default function regressionBugScanTest() {
 
     it('checkinTask_zeroTargetValueTaskCompletesWithoutPositiveProgress', 0, () => {
       const task = new DayTaskInfo(1, '20260709', 1, '0', '0', false);
+      const taskInfo = new TaskInfo(1, false, '0', false, '', '', '', -1, '', '', TaskType.VALUE, '0.5', '', PickerType.NONE, '', '', false, false, 0, 0);
 
-      const result = checkinTask(task);
+      const result = checkinTask(task, taskInfo);
 
       expect(result.isDone).assertTrue();
       expect(result.finValue).assertEqual('0');
