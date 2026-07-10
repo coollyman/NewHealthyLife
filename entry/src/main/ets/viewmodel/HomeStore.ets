@@ -6,7 +6,9 @@ import { TaskInfoRepository } from '../data/db/TaskInfoRepository';
 import { DayInfoRepository } from '../data/db/DayInfoRepository';
 import { DayTaskRepository } from '../data/db/DayTaskRepository';
 import { RecoveryRepository } from '../data/db/RecoveryRepository';
+import { DatabaseHelper } from '../data/db/DatabaseHelper';
 import { PreferencesRepository } from '../data/prefs/PreferencesRepository';
+import { ProfileRepository } from '../data/prefs/ProfileRepository';
 import { FormService } from '../services/FormService';
 import { checkinTask, canCheckin } from '../domain/rules/TaskRules';
 import {
@@ -955,5 +957,51 @@ export class HomeStore {
     this.updateMonthViewData(todayData.dayInfo);
 
     await this.formService.updateAllForms(todayData.dayInfo, todayData.dayTasks, this.allTasks);
+  }
+
+  /**
+   * 清除所有数据 — 清空 RDB 业务表 + Preferences，重新初始化
+   */
+  async resetAllData(): Promise<void> {
+    // 1. 取消所有已设置的提醒
+    const allTasks = await this.taskRepo.getAllTasks();
+    for (const task of allTasks) {
+      if (task.reminderId >= 0) {
+        try {
+          await cancelReminder(task.reminderId);
+        } catch (e) {
+          console.error('cancelReminder error: ' + e);
+        }
+      }
+    }
+
+    // 2. 清空 RDB 业务表
+    const dbHelper = DatabaseHelper.getInstance();
+    await dbHelper.clearAllTables();
+
+    // 3. 清空 Preferences（连续天数 + 个人资料）
+    await this.prefRepo.clearAll();
+    const profileRepo = ProfileRepository.getInstance();
+    try {
+      await profileRepo.clearAll();
+    } catch (e) {
+      console.error('clear profile error: ' + e);
+    }
+
+    // 4. 重置内存状态
+    this.consecutiveState = new ConsecutiveDaysState();
+    this.dayInfo = new DayInfo(getToday(), 0, 0);
+    this.dayTasks = [];
+    this.todayRecovery = null;
+    this.monthViewData = new Map<string, number>();
+    this.calendarDayStatus = new Map<string, number>();
+    this.isMonthView = false;
+
+    // 5. 重新初始化默认任务 + 今日数据
+    await this.taskRepo.ensureDefaultTasks();
+    this.allTasks = await this.taskRepo.getAllTasks();
+    const today = getToday();
+    await this.initDayData(today);
+    this.selectedDate = today;
   }
 }

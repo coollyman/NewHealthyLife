@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NewHealthyLife 健康习惯管理应用项目报告</title>
+  <style>
+    :root {
+      --ink: #182230;
+      --muted: #5f6b7a;
+      --line: #d8e0ea;
+      --paper: #ffffff;
+      --soft: #f3f6fa;
+      --blue: #155eef;
+      --green: #16885f;
+      --gold: #b7791f;
+      --red: #c2413f;
+      --shadow: 0 14px 36px rgba(24, 34, 48, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #eaf0f7;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+
+    .page {
+      max-width: 1160px;
+      margin: 28px auto;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .cover {
+      padding: 56px 64px 42px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .cover-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-start;
+      margin-bottom: 38px;
+    }
+
+    .label {
+      display: inline-block;
+      padding: 6px 12px;
+      border: 1px solid #b7cdfb;
+      border-radius: 999px;
+      color: var(--blue);
+      background: #eef4ff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: 42px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 780px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.85;
+    }
+
+    .meta {
+      min-width: 260px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .meta div {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 7px 0;
+      border-bottom: 1px dashed #dce3ed;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .meta div:last-child { border-bottom: 0; }
+    .meta strong { color: var(--ink); font-weight: 700; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 34px;
+    }
+
+    .stat {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1.15;
+      margin-bottom: 6px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    main { padding: 42px 64px 58px; }
+
+    section {
+      padding: 30px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    section:last-child { border-bottom: 0; }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 28px;
+      line-height: 1.28;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      line-height: 1.35;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      line-height: 1.85;
+    }
+
+    .lead-grid,
+    .tech-grid,
+    .verify-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 20px;
+    }
+
+    .card.accent {
+      border-left: 4px solid var(--blue);
+    }
+
+    .plain-list {
+      margin: 10px 0 0;
+      padding-left: 20px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .feature {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) 260px;
+      gap: 22px;
+      align-items: start;
+      padding: 22px 0;
+      border-top: 1px solid #edf1f6;
+    }
+
+    .feature:first-of-type { border-top: 0; }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #f2f5f9;
+      color: #344054;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .shot {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .shot:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 30px rgba(24, 34, 48, .12);
+    }
+
+    .shot img {
+      display: block;
+      width: 100%;
+      max-height: 430px;
+      object-fit: cover;
+      object-position: top;
+      background: #f8fafc;
+    }
+
+    .shot figcaption {
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+      border-top: 1px solid var(--line);
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr);
+      gap: 18px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    code,
+    .commit {
+      font-family: "Cascadia Mono", Consolas, monospace;
+    }
+
+    .commit {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      height: 32px;
+      border-radius: 999px;
+      color: #fff;
+      background: #111827;
+      font-size: 13px;
+    }
+
+    .terminal {
+      padding: 18px;
+      border-radius: 8px;
+      background: #111827;
+      color: #e5edf8;
+      overflow: auto;
+    }
+
+    .terminal code {
+      white-space: pre-wrap;
+      color: inherit;
+      line-height: 1.75;
+      font-size: 13px;
+    }
+
+    .highlight {
+      border-left: 4px solid var(--green);
+      background: #f0fdf7;
+    }
+
+    .warning {
+      border-left: 4px solid var(--gold);
+      background: #fff8eb;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+    }
+
+    .modal.open { display: block; }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(17, 24, 39, .72);
+    }
+
+    .modal-dialog {
+      position: relative;
+      width: min(980px, calc(100vw - 36px));
+      max-height: calc(100vh - 36px);
+      margin: 18px auto;
+      display: grid;
+      grid-template-columns: 380px minmax(0, 1fr);
+      overflow: hidden;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 28px 80px rgba(0, 0, 0, .35);
+    }
+
+    .modal-image {
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      padding: 18px;
+      background: #111827;
+    }
+
+    .modal-image img {
+      display: block;
+      width: 100%;
+      border-radius: 20px;
+      border: 6px solid #0b1220;
+      background: #0b1220;
+    }
+
+    .modal-copy {
+      padding: 30px;
+      overflow: auto;
+      max-height: calc(100vh - 36px);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 999px;
+      background: #edf2f7;
+      color: #344054;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    footer {
+      padding: 22px 64px 42px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      line-height: 1.7;
+      background: #fbfcfe;
+    }
+
+    @media (max-width: 900px) {
+      .page { margin: 0; border: 0; }
+      .cover, main, footer { padding-left: 24px; padding-right: 24px; }
+      .cover-top, .lead-grid, .tech-grid, .verify-grid, .feature, .modal-dialog {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .timeline-item { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      .page { margin: 0; border: 0; box-shadow: none; max-width: none; }
+      .cover, main, footer { padding: 24px 30px; }
+      .shot { cursor: default; box-shadow: none; break-inside: avoid; }
+      .modal { display: none !important; }
+      section, .card, .feature, .timeline-item { break-inside: avoid; }
+      .feature { grid-template-columns: minmax(0, 1fr) 180px; }
+      .shot img { max-height: 300px; }
+      .terminal { color: #111827; background: #f4f6f8; border: 1px solid var(--line); }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="cover">
+      <div class="cover-top">
+        <div>
+          <span class="label">HarmonyOS 课程项目报告</span>
+          <h1>NewHealthyLife<br>健康习惯管理应用项目报告</h1>
+          <p class="subtitle">
+            本项目基于 ArkTS 与 ArkUI 开发，围绕健康习惯配置、每日打卡、提醒、成就激励和个人资料管理构建完整应用闭环。
+            报告内容依据当前 Git 提交、真实设备截图和最近一轮构建/测试结果整理。
+          </p>
+        </div>
+        <div class="meta" aria-label="报告信息">
+          <div><span>学生姓名</span><strong>请填写</strong></div>
+          <div><span>班级/学号</span><strong>请填写</strong></div>
+          <div><span>项目名称</span><strong>NewHealthyLife</strong></div>
+          <div><span>报告日期</span><strong>2026-07-10</strong></div>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><strong>10</strong><span>真实页面截图用于功能证明</span></div>
+        <div class="stat"><strong>7</strong><span>预设健康习惯，含跑步任务</span></div>
+        <div class="stat"><strong>18/18</strong><span>设备集成测试通过</span></div>
+        <div class="stat"><strong>8+</strong><span>核心功能模块形成完整闭环</span></div>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <h2>一、项目概述</h2>
+        <div class="lead-grid">
+          <div class="card accent">
+            <h3>开发背景与目标</h3>
+            <p>
+              健康习惯管理应用的核心价值在于降低用户坚持行动的成本。本项目以“配置习惯、每日打卡、查看进度、获得激励”为主线，
+              设计并实现了一个适合日常使用的 HarmonyOS 应用。
+            </p>
+            <ul class="plain-list">
+              <li>帮助用户管理早起、喝水、吃苹果、微笑、刷牙、早睡、跑步等健康习惯。</li>
+              <li>支持自定义习惯，满足不同用户对目标、单位和执行星期的个性化需求。</li>
+              <li>通过成就、周复盘、动态等级和提醒功能提升持续使用动力。</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>技术栈与工程结构</h3>
+            <p>
+              项目采用 HarmonyOS ArkTS/ArkUI 开发，单模块 `entry` 承载页面、组件、领域规则、状态管理、服务和持久化代码。
+              代码按 UI、viewmodel、domain、services、data 等层次拆分，便于功能扩展和测试。
+            </p>
+            <div class="badge-row">
+              <span class="badge">ArkTS</span>
+              <span class="badge">ArkUI</span>
+              <span class="badge">HarmonyOS</span>
+              <span class="badge">Repository</span>
+              <span class="badge">Domain Rules</span>
+              <span class="badge">Hypium/ohosTest</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>二、功能完成情况</h2>
+
+        <article class="feature">
+          <div>
+            <h3>1. 首页与每日打卡中心</h3>
+            <p>
+              首页是用户的主要操作入口，集中展示健康生活标题、当天目标进度、周日历、任务列表和底部导航。
+              用户可以在这里查看当天任务完成情况，并通过任务卡片进入打卡反馈流程。
+            </p>
+            <ul class="plain-list">
+              <li>显示当天总体完成百分比，帮助用户快速判断今日进度。</li>
+              <li>周日历展示日期和完成状态，支持用户按日期回看。</li>
+              <li>任务列表展示早起、喝水、刷牙、跑步等任务的完成状态。</li>
+            </ul>
+          </div>
+          <figure class="shot" data-title="首页与每日打卡中心" data-image="assets/home.png" data-desc="首页展示目标进度、周日历、任务列表和底部导航，是用户每日使用的核心页面。">
+            <img src="assets/home.png" alt="首页截图">
+            <figcaption>首页：目标进度、周日历、任务列表。</figcaption>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div>
+            <h3>2. 预设习惯与添加任务</h3>
+            <p>
+              添加任务页提供预设习惯列表，并显示每个习惯是否已经开启。项目修复了预设任务名称显示为数字 ID 的问题，
+              让早起、喝水、吃苹果等名称在页面和服务卡片中稳定显示。
+            </p>
+            <ul class="plain-list">
+              <li>预设习惯覆盖作息、饮食、情绪、卫生和运动场景。</li>
+              <li>任务开启状态在列表中直接展示，避免重复配置。</li>
+              <li>新增跑步任务，任务目录从 6 个扩展为 7 个。</li>
+            </ul>
+          </div>
+          <figure class="shot" data-title="添加任务与预设习惯" data-image="assets/add-task.png" data-desc="添加任务页展示创建自定义习惯入口和预设习惯列表。">
+            <img src="assets/add-task.png" alt="添加任务页截图">
+            <figcaption>添加任务：自定义入口与预设习惯列表。</figcaption>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div>
+            <h3>3. 自定义习惯创建</h3>
+            <p>
+              自定义习惯功能支持用户创建自己的健康目标。用户可以配置名称、图标、任务类型、目标值、单位和执行星期，
+              后续进入首页统计和打卡流程。
+            </p>
+            <ul class="plain-list">
+              <li>自定义任务 ID 从 100 开始，与预设任务分离。</li>
+              <li>支持是否完成、数值目标、时间目标等任务形态。</li>
+              <li>创建时校验名称、目标值、时间格式、步进和执行星期。</li>
+            </ul>
+          </div>
+          <figure class="shot" data-title="自定义习惯创建" data-image="assets/custom-task-form.png" data-desc="自定义习惯表单支持名称、图标、类型、目标、单位和执行星期配置。">
+            <img src="assets/custom-task-form.png" alt="自定义习惯创建截图">
+            <figcaption>自定义习惯：名称、图标、类型、目标、单位、星期。</figcaption>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div>
+            <h3>4. 编辑任务与提醒配置</h3>
+            <p>
+              编辑任务页支持任务启用状态、目标值和提醒设置。跑步任务等数值型任务可以设置目标次数，提醒功能支持开启开关、
+              选择提醒时间和星期频率。
+            </p>
+            <ul class="plain-list">
+              <li>数值型任务支持目标值选择，如跑步一公里目标可配置为多次。</li>
+              <li>提醒服务根据提醒时间和星期频率生成计划。</li>
+              <li>修复了自定义任务提醒关闭、目标更新后提醒未同步的问题。</li>
+            </ul>
+          </div>
+          <figure class="shot" data-title="编辑任务与提醒配置" data-image="assets/edit-task-reminder.png" data-desc="编辑任务页展示目标设置、提醒开关、提醒时间和提醒频率。">
+            <img src="assets/edit-task-reminder.png" alt="编辑任务提醒截图">
+            <figcaption>编辑任务：目标设置、提醒开关、时间和频率。</figcaption>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div>
+            <h3>5. 打卡反馈与完成状态</h3>
+            <p>
+              打卡弹窗展示任务图标、任务名称、目标值和操作按钮。最新修复中，完成后的任务按钮会统一显示“已完成”，
+              避免数值型任务完成后仍显示“打卡”造成误解。
+            </p>
+            <ul class="plain-list">
+              <li>一次性、数值、时间目标统一进入打卡反馈弹窗。</li>
+              <li>已完成任务不再允许继续增加打卡次数。</li>
+              <li>截图中按钮文案显示“已完成”，对应最新修复提交 `b25eda9`。</li>
+            </ul>
+          </div>
+          <figure class="shot" data-title="打卡反馈与已完成状态" data-image="assets/checkin-completed.png" data-desc="打卡弹窗在任务完成后显示“已完成”，证明按钮文案逻辑已修复。">
+            <img src="assets/checkin-completed.png" alt="打卡反馈已完成截图">
+            <figcaption>打卡反馈：任务完成后按钮显示“已完成”。</figcaption>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div>
+            <h3>6. 月视图与历史状态回顾</h3>
+            <p>
+              月视图以整月日历展示完成状态，帮助用户从更长周期观察习惯坚持情况。月历数据会随着打卡、启用、停用和目标修改而更新。
+            </p>
+            <ul class="plain-list">
+              <li>支持上一月、下一月切换。</li>
+              <li>用状态标识展示某天是否完成任务。</li>
+              <li>点击日期可回到首页并切换当前查看日期。</li>
+            </ul>
+          </div>
+          <figure class="shot" data-title="月视图与历史状态" data-image="assets/month-view.png" data-desc="月视图展示整月日期和完成状态，支持用户回顾历史打卡情况。">
+            <img src="assets/month-view.png" alt="月视图截图">
+            <figcaption>月视图：整月日期与完成状态标识。</figcaption>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div>
+            <h3>7. 成就系统与周复盘</h3>
+            <p>
+              成就页承担长期激励功能，展示连续打卡天数、最高连续天数、本周复盘、连续天数徽章、单项达成和超额达成。
+              周复盘会总结本周完成率、稳定任务和容易遗漏的任务。
+            </p>
+            <ul class="plain-list">
+              <li>连续天数和最高连续天数由规则层计算。</li>
+              <li>徽章覆盖连续 3/7/30/50/73/99 天等目标。</li>
+              <li>修复了周复盘任务名解析和补救触发成就检测问题。</li>
+            </ul>
+          </div>
+          <figure class="shot" data-title="成就系统与周复盘" data-image="assets/achievement.png" data-desc="成就页顶部展示连续天数、最高连续天数、本周复盘和徽章状态。">
+            <img src="assets/achievement.png" alt="成就页截图">
+            <figcaption>成就页：连续天数、周复盘和徽章。</figcaption>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div>
+            <h3>8. 单项达成与超额达成</h3>
+            <p>
+              成就详情区域展示不同任务的单项达成状态，以及数值型任务超额完成情况。该设计使用户不仅能看到连续坚持，
+              也能看到具体习惯上的阶段性成果。
+            </p>
+            <ul class="plain-list">
+              <li>单项达成覆盖早起、喝水、吃苹果、微笑、刷牙、早睡、跑步等任务。</li>
+              <li>超额达成用于体现数值型任务的额外完成情况。</li>
+              <li>页面层根据 taskId 解析任务名称，避免 domain 层依赖资源文案。</li>
+            </ul>
+          </div>
+          <figure class="shot" data-title="单项达成与超额达成" data-image="assets/achievement-detail.png" data-desc="成就页下半部分展示单项达成和超额达成区域。">
+            <img src="assets/achievement-detail.png" alt="成就详情截图">
+            <figcaption>成就详情：单项达成和超额达成。</figcaption>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div>
+            <h3>9. 我的页面与动态等级</h3>
+            <p>
+              我的页面展示用户头像、昵称、性别年龄、动态等级和个人资料入口。等级不再写死，而是由最高连续天数计算，
+              体现用户坚持程度。
+            </p>
+            <ul class="plain-list">
+              <li>展示 LV.1-LV.7 等级体系。</li>
+              <li>个人资料入口连接资料编辑页。</li>
+              <li>保留检查更新入口，形成完整个人中心页面。</li>
+            </ul>
+          </div>
+          <figure class="shot" data-title="我的页面与动态等级" data-image="assets/mine.png" data-desc="我的页面展示头像、昵称、动态等级和个人资料入口。">
+            <img src="assets/mine.png" alt="我的页面截图">
+            <figcaption>我的页面：用户信息、等级、资料入口。</figcaption>
+          </figure>
+        </article>
+
+        <article class="feature">
+          <div>
+            <h3>10. 个人资料编辑</h3>
+            <p>
+              个人资料页支持头像、昵称、性别、出生日期、身高和体重编辑。项目修复了身高、体重、出生日期无法稳定输入的问题，
+              改为更直接的内联输入和选择交互。
+            </p>
+            <ul class="plain-list">
+              <li>昵称、身高、体重使用内联输入控件。</li>
+              <li>身高和体重旁显示 cm/kg 单位。</li>
+              <li>性别采用行内 chip 选择，保存后更新我的页面摘要。</li>
+            </ul>
+          </div>
+          <figure class="shot" data-title="个人资料编辑" data-image="assets/profile-edit.png" data-desc="个人资料页展示头像、昵称、性别、生日、身高和体重编辑。">
+            <img src="assets/profile-edit.png" alt="个人资料编辑截图">
+            <figcaption>个人资料：头像、昵称、性别、生日、身高、体重。</figcaption>
+          </figure>
+        </article>
+      </section>
+
+      <section>
+        <h2>三、核心技术实现</h2>
+        <div class="tech-grid">
+          <div class="card">
+            <h3>页面与组件实现</h3>
+            <p>应用使用 ArkUI 声明式 UI 构建页面，首页、添加任务、编辑任务、月视图、成就页、我的页和个人资料页分层组织。</p>
+            <ul class="plain-list">
+              <li>页面负责交互与展示，组件负责复用 UI 单元。</li>
+              <li>打卡弹窗、成就徽章、目标建议卡片等组件独立封装。</li>
+              <li>页面状态通过 viewmodel/store 统一协调，减少页面内散乱逻辑。</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>任务规则与状态管理</h3>
+            <p>任务完成逻辑由领域规则处理，支持一次性任务、数值型任务和时间型任务，首页根据 DayInfo/DayTask 汇总进度。</p>
+            <ul class="plain-list">
+              <li>ONCE 任务完成一次即可达标。</li>
+              <li>VALUE 任务按 step 累加，并受目标值约束。</li>
+              <li>TIME 任务按目标时间判断完成状态。</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>数据持久化与 Repository</h3>
+            <p>任务配置、自定义习惯、用户资料、打卡状态和提醒配置通过仓储层保存，应用重启后仍能恢复主要状态。</p>
+            <ul class="plain-list">
+              <li>Repository 层隔离数据读写细节。</li>
+              <li>ProfileStore/ProfileRepository 管理个人资料。</li>
+              <li>自定义任务采用软删除，避免历史数据被直接破坏。</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>提醒、成就与复盘规则</h3>
+            <p>提醒服务、成就规则和周复盘规则构成长期激励层，使应用不只是记录工具，也能提供反馈和建议。</p>
+            <ul class="plain-list">
+              <li>ReminderService 生成时间和星期频率提醒。</li>
+              <li>AchievementRules 计算连续、单项和超额成就。</li>
+              <li>WeeklyReviewRules 生成本周完成率和建议。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>四、开发迭代与问题修复</h2>
+        <p>
+          项目开发过程中通过 Git 持续迭代。报告不以提交历史作为主线，但关键提交能够证明功能扩展和质量改进过程。
+        </p>
+        <div class="timeline">
+          <div class="timeline-item">
+            <span class="commit">b191a29</span>
+            <div>
+              <h3>跑步任务、多次打卡、月视图和周提醒</h3>
+              <p>新增跑步任务，扩展数值型任务目标，加入月视图和跑步提醒配置，并补充设备集成测试。</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="commit">210813c</span>
+            <div>
+              <h3>创新功能四阶段、自定义习惯和动态等级</h3>
+              <p>加入月历稳定化、智能目标、补救机制、多维成就、周复盘、自定义习惯和用户等级动态化。</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="commit">bd5583c</span>
+            <div>
+              <h3>预设任务名称显示修复</h3>
+              <p>修复 Resource 数字 ID 被当作文本显示的问题，使预设习惯名称在页面和卡片中正确展示。</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="commit">c7f0ec3</span>
+            <div>
+              <h3>个人资料输入修复</h3>
+              <p>修复身高、体重、出生日期无法稳定输入的问题，优化个人资料页交互。</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="commit">4221605</span>
+            <div>
+              <h3>自定义任务 P1 问题收口</h3>
+              <p>修复自定义任务完整编辑、非执行日统计、服务卡片名称和创建校验问题，并新增 UI smoke 脚本。</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="commit">206c04b</span>
+            <div>
+              <h3>代码审查后的 6 个问题修复</h3>
+              <p>处理周复盘名称解析、提醒同步、归档卡片、补救成就解锁等边界问题。</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="commit">b25eda9</span>
+            <div>
+              <h3>打卡弹窗按钮文案逻辑修复</h3>
+              <p>修复 VALUE 类型任务完成后仍显示“打卡”的交互问题，完成状态下统一显示“已完成”。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>五、测试与验证</h2>
+        <div class="verify-grid">
+          <div class="terminal">
+            <code>最近一轮验证记录：
+
+devecocli device list
+设备在线：127.0.0.1:5555
+
+devecocli build
+结果：BUILD SUCCESSFUL
+
+powershell -ExecutionPolicy Bypass -File scripts/run-ohos-test.ps1 -Device 127.0.0.1:5555
+结果：Tests run: 18, Failure: 0, Error: 0, Pass: 18
+
+powershell -ExecutionPolicy Bypass -File scripts/run-ui-smoke.ps1 -Device 127.0.0.1:5555 -SkipBuild
+结果：UI smoke passed</code>
+          </div>
+          <div>
+            <div class="card highlight">
+              <h3>测试覆盖重点</h3>
+              <ul class="plain-list">
+                <li>应用启动、底部 Tab、首页任务列表、添加任务页。</li>
+                <li>任务启用、目标修改、打卡反馈、完成状态展示。</li>
+                <li>月视图、成就页、我的页面和个人资料保存。</li>
+                <li>数据库、仓储、偏好、提醒和完整启用打卡流程。</li>
+              </ul>
+            </div>
+            <div class="card warning" style="margin-top: 14px;">
+              <h3>数据口径说明</h3>
+              <p>
+                本报告只把实际执行通过的设备测试写为 18/18。仓库中的本地测试文件、describe/it 声明数量用于说明测试规模，
+                不等同于本轮全部已执行通过的测试数。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>六、项目亮点</h2>
+        <div class="tech-grid">
+          <div class="card">
+            <h3>完整健康习惯闭环</h3>
+            <p>从习惯配置、每日打卡、日期回顾到成就激励，形成了较完整的健康习惯管理流程。</p>
+          </div>
+          <div class="card">
+            <h3>自定义习惯扩展能力</h3>
+            <p>用户可创建自定义习惯，并配置图标、目标、单位和执行星期，使应用不局限于预设任务。</p>
+          </div>
+          <div class="card">
+            <h3>规则层与 UI 分离</h3>
+            <p>任务完成、连续天数、成就、周复盘等逻辑尽量放入 domain/rules，提升可测试性和可维护性。</p>
+          </div>
+          <div class="card">
+            <h3>重视测试和问题修复</h3>
+            <p>通过设备测试、UI smoke、截图验证和多轮 bug 修复，提升应用交互一致性和稳定性。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>七、总结与展望</h2>
+        <p>
+          NewHealthyLife 已完成一个健康习惯管理应用的主要功能闭环：用户可以配置预设或自定义习惯，在首页完成每日打卡，
+          通过周视图和月视图回顾历史状态，在成就页获得长期反馈，并在个人中心维护资料信息。
+        </p>
+        <p>
+          项目后续可以继续优化通知权限适配、更多数据图表、云端同步、主题个性化、无障碍适配和更完整的自动化回归测试。
+          目前版本已经具备较完整的课程项目展示价值，也能体现 HarmonyOS 应用开发中的页面构建、状态管理、持久化、规则设计和测试验证能力。
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      报告文件：<code>artifacts/final-report/index.html</code>。
+      图片素材：<code>artifacts/final-report/assets</code>。
+      内容依据当前 Git 历史、源码结构、真实页面截图和最近一轮验证记录整理。
+    </footer>
+  </div>
+
+  <div class="modal" id="imageModal" aria-hidden="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" type="button" aria-label="关闭" data-close>×</button>
+      <div class="modal-image">
+        <img id="modalImage" src="assets/home.png" alt="">
+      </div>
+      <div class="modal-copy">
+        <span class="label">截图说明</span>
+        <h2 id="modalTitle">页面截图</h2>
+        <p id="modalDesc"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.querySelector('#imageModal');
+    const modalImage = document.querySelector('#modalImage');
+    const modalTitle = document.querySelector('#modalTitle');
+    const modalDesc = document.querySelector('#modalDesc');
+
+    function openModal(item) {
+      modalImage.src = item.dataset.image;
+      modalImage.alt = item.dataset.title || '页面截图';
+      modalTitle.textContent = item.dataset.title || '页面截图';
+      modalDesc.textContent = item.dataset.desc || '';
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('.shot').forEach((item) => {
+      item.tabIndex = 0;
+      item.addEventListener('click', () => openModal(item));
+      item.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openModal(item);
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-close]').forEach((item) => {
+      item.addEventListener('click', closeModal);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modal.classList.contains('open')) {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>

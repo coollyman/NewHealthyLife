@@ -52,4 +52,15 @@ export class ProfileRepository implements IProfileRepository {
     await p.put(AppConstants.PROFILE_WEIGHT_KG, profile.weightKg);
     await p.flush();
   }
+
+  async clearAll(): Promise<void> {
+    const p = this.getPref();
+    await p.delete(AppConstants.PROFILE_AVATAR_URI);
+    await p.delete(AppConstants.PROFILE_NICKNAME);
+    await p.delete(AppConstants.PROFILE_GENDER);
+    await p.delete(AppConstants.PROFILE_BIRTH_DATE);
+    await p.delete(AppConstants.PROFILE_HEIGHT_CM);
+    await p.delete(AppConstants.PROFILE_WEIGHT_KG);
+    await p.flush();
+  }
 }

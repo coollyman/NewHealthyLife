@@ -99,4 +99,24 @@ export class DatabaseHelper {
     }
     return this.rdbStore;
   }
+
+  /**
+   * 清空所有业务表数据（保留表结构）
+   */
+  async clearAllTables(): Promise<void> {
+    if (this.rdbStore === null) {
+      throw new Error('RDB store not initialized. Call init() first.');
+    }
+    await this.rdbStore.executeSql(`DELETE FROM ${DbSchema.TABLE_DAY_TASK}`);
+    await this.rdbStore.executeSql(`DELETE FROM ${DbSchema.TABLE_DAY}`);
+    await this.rdbStore.executeSql(`DELETE FROM ${DbSchema.TABLE_RECOVERY}`);
+    // 预设任务保留行但重置为关闭状态
+    await this.rdbStore.executeSql(
+      `UPDATE ${DbSchema.TABLE_TASK} SET isOpen = 0, isAlert = 0, reminderId = -1, isArchived = 0 WHERE isPreset = 1`
+    );
+    // 删除自定义任务
+    await this.rdbStore.executeSql(
+      `DELETE FROM ${DbSchema.TABLE_TASK} WHERE isPreset = 0 OR isPreset IS NULL`
+    );
+  }
 }

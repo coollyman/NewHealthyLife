@@ -54,4 +54,13 @@ export class PreferencesRepository implements IPrefRepository {
     await p.put(AppConstants.MAX_CONSECUTIVE_DAYS_BEFORE_CURRENT_DAY, state.maxConsecutiveDaysBeforeCurrentDay);
     await p.flush();
   }
+
+  async clearAll(): Promise<void> {
+    const p = this.getPref();
+    await p.delete(AppConstants.MAX_CONSECUTIVE_DAYS);
+    await p.delete(AppConstants.CURRENT_CONSECUTIVE_DAYS);
+    await p.delete(AppConstants.CURRENT_DAY_STATUS);
+    await p.delete(AppConstants.MAX_CONSECUTIVE_DAYS_BEFORE_CURRENT_DAY);
+    await p.flush();
+  }
 }

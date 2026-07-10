@@ -1,4 +1,5 @@
 import { router } from '@kit.ArkUI';
+import { promptAction } from '@kit.ArkUI';
 import { AppConstants } from '../domain/constants/AppConstants';
 import { ProfileStore } from '../viewmodel/ProfileStore';
 import { formatProfileSummary } from '../domain/models/ProfileInfo';
@@ -105,9 +106,50 @@ export struct MinePage {
       .margin({ top: 8 })
       .scrollBar(BarState.Off)
       .divider({ strokeWidth: 0.5, color: $r('app.color.divider'), startMargin: 16, endMargin: 16 })
+
+      // 清除所有数据
+      Button('清除所有数据')
+        .type(ButtonType.Capsule)
+        .backgroundColor($r('app.color.bg_card'))
+        .fontColor('#FF4444')
+        .fontSize(16)
+        .width('90%')
+        .height(48)
+        .margin({ top: 24, bottom: 24 })
+        .onClick(() => {
+          this.confirmClearData();
+        })
     }
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.bg_page'))
+  }
+
+  private confirmClearData(): void {
+    promptAction.showDialog({
+      title: '清除所有数据',
+      message: '将清除所有打卡记录、连续天数、个人资料和自定义任务，恢复到首次安装状态。此操作不可撤销，确定继续？',
+      buttons: [
+        { text: '取消', color: '#666666' },
+        { text: '确认清除', color: '#FF4444' }
+      ]
+    }).then((result: promptAction.ShowDialogSuccessResponse) => {
+      if (result.index === 1) {
+        this.doClearData();
+      }
+    }).catch((e: Object) => {
+      console.error('confirmClearDialog error: ' + e);
+    });
+  }
+
+  private async doClearData(): Promise<void> {
+    try {
+      await this.homeStore.resetAllData();
+      await this.profileStore.reload();
+      promptAction.showToast({ message: '数据已清除' });
+    } catch (e) {
+      console.error('clearData error: ' + e);
+      promptAction.showToast({ message: '清除失败' });
+    }
   }
 }

@@ -49,6 +49,7 @@ export interface IDayTaskRepository {
 export interface IPrefRepository {
   getConsecutiveState(): Promise<ConsecutiveDaysState>;
   saveConsecutiveState(state: ConsecutiveDaysState): Promise<void>;
+  clearAll(): Promise<void>;
 }
 
 /**

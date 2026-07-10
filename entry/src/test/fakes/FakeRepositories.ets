@@ -278,6 +278,10 @@ export class FakePrefRepo implements IPrefRepository {
   rawGetState(): ConsecutiveDaysState {
     return this.state;
   }
+
+  async clearAll(): Promise<void> {
+    this.state = new ConsecutiveDaysState(0, 0, false, null);
+  }
 }
 
 export class FakeFormService implements IFormService {
