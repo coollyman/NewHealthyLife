@@ -175,15 +175,8 @@ struct TaskClockDialog {
   }
 
   private canContinueCheckin(): boolean {
-    if (!this.dayTask.isDone) {
-      return true;
-    }
-    const task = this.homeStore.allTasks.find(t => t.taskId === this.dayTask.taskId);
-    if (!task) {
-      return false;
-    }
-    const meta = getTaskDisplayMeta(task);
-    return meta.taskType === TaskType.VALUE;
+    // 已完成的任务统一显示"已完成"，不再允许继续打卡
+    return !this.dayTask.isDone;
   }
 
   private getButtonText(): Resource {

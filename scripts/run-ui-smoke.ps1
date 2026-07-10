@@ -81,9 +81,8 @@ function Save-Layout {
 
 function Get-RootBounds {
   param([string]$LayoutFile)
-  $layout = Get-Content -Raw $LayoutFile | ConvertFrom-Json
-  $bounds = $layout.attributes.bounds
-  if ($bounds -notmatch "\[(\d+),(\d+)\]\[(\d+),(\d+)\]") {
+  $raw = Get-Content -Raw -Encoding UTF8 $LayoutFile
+  if ($raw -notmatch '"bounds":"\[(\d+),(\d+)\]\[(\d+),(\d+)\]"') {
     throw "Unable to parse root bounds from $LayoutFile"
   }
   return @{
@@ -94,7 +93,7 @@ function Get-RootBounds {
 
 function Assert-LayoutContains {
   param([string]$LayoutFile, [string]$Text)
-  $raw = Get-Content -Raw $LayoutFile
+  $raw = Get-Content -Raw -Encoding UTF8 $LayoutFile
   if (!$raw.Contains($Text)) {
     throw "Expected layout '$LayoutFile' to contain text '$Text'."
   }

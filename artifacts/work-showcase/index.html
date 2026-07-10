@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NewHealthyLife 两日工作成果说明</title>
+  <style>
+    :root {
+      --ink: #152033;
+      --muted: #667085;
+      --soft: #f4f7fb;
+      --card: #ffffff;
+      --line: #e5ebf2;
+      --blue: #1769ff;
+      --green: #20b970;
+      --gold: #f2b230;
+      --red: #e85d5d;
+      --shadow: 0 18px 54px rgba(21, 32, 51, .10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: var(--soft);
+      letter-spacing: 0;
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    .hero {
+      padding: 54px 0 34px;
+      background: linear-gradient(180deg, #ffffff 0%, #f4f7fb 100%);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 460px;
+      gap: 42px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+      color: var(--blue);
+      font-weight: 800;
+      margin-bottom: 18px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 0 6px rgba(32, 185, 112, .12);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 52px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 740px;
+      margin: 22px 0 26px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.8;
+    }
+
+    .facts {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      max-width: 780px;
+    }
+
+    .fact {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--card);
+      box-shadow: 0 10px 30px rgba(21, 32, 51, .05);
+    }
+
+    .fact strong {
+      display: block;
+      font-size: 26px;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+
+    .fact span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .hero-phones {
+      position: relative;
+      min-height: 560px;
+    }
+
+    .phone-card {
+      position: absolute;
+      border: 8px solid #101828;
+      border-radius: 28px;
+      overflow: hidden;
+      background: #101828;
+      box-shadow: var(--shadow);
+    }
+
+    .phone-card img { display: block; width: 100%; }
+
+    .phone-card.main {
+      width: 260px;
+      right: 84px;
+      top: 0;
+      z-index: 3;
+    }
+
+    .phone-card.left {
+      width: 210px;
+      left: 0;
+      top: 120px;
+      z-index: 2;
+      opacity: .95;
+    }
+
+    .phone-card.right {
+      width: 210px;
+      right: 0;
+      top: 190px;
+      z-index: 1;
+      opacity: .92;
+    }
+
+    section {
+      padding: 38px 0;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.25;
+    }
+
+    .section-head p {
+      margin: 0;
+      max-width: 560px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+    .card,
+    .commit,
+    .evidence,
+    .shot {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 12px 34px rgba(21, 32, 51, .06);
+    }
+
+    .card {
+      padding: 22px;
+    }
+
+    .card h3,
+    .commit h3,
+    .evidence h3 {
+      margin: 0 0 10px;
+      font-size: 19px;
+    }
+
+    .card p,
+    .commit p,
+    .evidence p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .tag {
+      display: inline-flex;
+      padding: 5px 10px;
+      margin-bottom: 12px;
+      border-radius: 999px;
+      color: var(--blue);
+      background: rgba(23, 105, 255, .09);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .commit {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr) 190px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .commit code {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 92px;
+      height: 34px;
+      border-radius: 999px;
+      background: #101828;
+      color: #e6edf7;
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .commit-visual {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: transform .22s ease, box-shadow .22s ease;
+    }
+
+    .commit-visual:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(21, 32, 51, .12);
+    }
+
+    .commit-visual img {
+      display: block;
+      width: 100%;
+    }
+
+    .commit-visual span {
+      display: block;
+      padding: 9px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      border-top: 1px solid var(--line);
+    }
+
+    .commit ul,
+    .plain-list {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .shot {
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .22s ease, box-shadow .22s ease;
+    }
+
+    .shot:hover,
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 18px 48px rgba(21, 32, 51, .12);
+    }
+
+    .shot img {
+      display: block;
+      width: 100%;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .shot div {
+      padding: 14px;
+    }
+
+    .shot h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .shot p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .feature-card {
+      padding: 0;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .22s ease, box-shadow .22s ease;
+    }
+
+    .feature-card img {
+      display: block;
+      width: 100%;
+      max-height: 280px;
+      object-fit: cover;
+      object-position: top;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .feature-card .feature-copy {
+      padding: 20px;
+    }
+
+    .evidence {
+      padding: 22px;
+    }
+
+    .terminal {
+      padding: 22px;
+      border-radius: 8px;
+      background: #101828;
+      color: #e6edf7;
+      overflow: auto;
+      box-shadow: var(--shadow);
+    }
+
+    .terminal code {
+      white-space: pre-wrap;
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .note {
+      border-left: 4px solid var(--gold);
+      background: #fff8e8;
+      padding: 16px 18px;
+      border-radius: 8px;
+      color: #6f5200;
+      line-height: 1.7;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      z-index: 99;
+    }
+
+    .modal.open {
+      display: block;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(16, 24, 40, .68);
+      opacity: 0;
+      animation: fadeIn .18s ease forwards;
+    }
+
+    .modal-dialog {
+      position: relative;
+      width: min(1040px, calc(100vw - 36px));
+      max-height: calc(100vh - 42px);
+      margin: 21px auto;
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 0;
+      overflow: hidden;
+      border-radius: 12px;
+      background: var(--card);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, .30);
+      transform: translateY(18px) scale(.98);
+      opacity: 0;
+      animation: popIn .22s ease forwards;
+    }
+
+    .modal-phone {
+      background: #101828;
+      padding: 18px;
+      display: grid;
+      place-items: start center;
+      overflow: auto;
+      max-height: calc(100vh - 42px);
+    }
+
+    .modal-phone img {
+      width: 100%;
+      max-width: 300px;
+      border: 7px solid #0b1220;
+      border-radius: 26px;
+      background: #0b1220;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .28);
+    }
+
+    .modal-copy {
+      padding: 30px;
+      overflow: auto;
+      max-height: calc(100vh - 42px);
+    }
+
+    .modal-kicker {
+      color: var(--blue);
+      font-weight: 800;
+      margin: 0 0 10px;
+    }
+
+    .modal-copy h3 {
+      margin: 0 44px 12px 0;
+      font-size: 28px;
+      line-height: 1.25;
+    }
+
+    .modal-copy p {
+      color: var(--muted);
+      line-height: 1.8;
+      margin: 0 0 18px;
+    }
+
+    .modal-points {
+      margin: 0;
+      padding-left: 19px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .modal-close {
+      position: absolute;
+      right: 14px;
+      top: 14px;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: #344054;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    @keyframes popIn {
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    footer {
+      padding: 34px 0 56px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid,
+      .grid.cols-2,
+      .grid.cols-3,
+      .grid.cols-5 {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero-phones { min-height: 480px; }
+      .phone-card.main { right: 40px; }
+    }
+
+    @media (max-width: 680px) {
+      .wrap { padding: 0 18px; }
+      h1 { font-size: 36px; }
+      .hero-grid,
+      .facts,
+      .grid.cols-2,
+      .grid.cols-3,
+      .grid.cols-5 {
+        grid-template-columns: 1fr;
+      }
+
+      .section-head {
+        display: block;
+      }
+
+      .section-head p {
+        margin-top: 10px;
+      }
+
+      .commit {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-dialog {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-phone {
+        max-height: 52vh;
+      }
+
+      .hero-phones {
+        display: grid;
+        gap: 16px;
+        min-height: 0;
+      }
+
+      .phone-card,
+      .phone-card.main,
+      .phone-card.left,
+      .phone-card.right {
+        position: static;
+        width: 100%;
+        max-width: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow"><span class="dot"></span> 基于 Git 提交与设备验证整理</div>
+        <h1>NewHealthyLife<br>两日开发成果复盘</h1>
+        <p class="lead">
+          本页只写仓库提交和实际验证能够支撑的内容。截图来自手动补全的真实页面：
+          首页、添加任务、自定义习惯、编辑提醒、月视图、成就页、我的页面和个人资料页。
+          点击任意功能图，可以展开查看对应页面和说明。
+        </p>
+        <div class="facts">
+          <div class="fact"><strong>6</strong><span>近两日关键提交</span></div>
+          <div class="fact"><strong>14</strong><span>本地测试文件</span></div>
+          <div class="fact"><strong>3</strong><span>ohosTest 文件</span></div>
+          <div class="fact"><strong>18/18</strong><span>设备集成测试通过</span></div>
+        </div>
+      </div>
+      <div class="hero-phones" aria-label="三张主页面预览">
+        <div class="phone-card left">
+          <img src="assets/achievement.png" alt="成就页截图">
+        </div>
+        <div class="phone-card main">
+          <img src="assets/home.png" alt="首页截图">
+        </div>
+        <div class="phone-card right">
+          <img src="assets/mine.png" alt="我的页面截图">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <h2>页面设计总览</h2>
+          <p>先展示应用最核心的三个入口页面：用户每天打开的首页、查看激励反馈的成就页、管理个人信息的我的页。</p>
+        </div>
+        <div class="grid cols-3">
+          <article class="shot" data-title="首页：每日使用中心" data-image="assets/home.png" data-kicker="主页面" data-description="用户每天打开应用后首先看到的页面。这里集中展示目标进度、周日历、任务列表和底部导航，是打卡流程的入口。" data-points="目标进度展示当天完成率|周日历展示日期和完成状态|任务列表展示早起、喝水等任务及完成状态|底部导航连接首页、成就、我的">
+            <img src="assets/home.png" alt="首页">
+            <div>
+              <h3>首页：每日使用中心</h3>
+              <p>健康生活标题、目标进度、周日历、任务列表、底部导航。</p>
+            </div>
+          </article>
+          <article class="shot" data-title="成就页：反馈与激励" data-image="assets/achievement.png" data-kicker="主页面" data-description="成就页承接连续天数、多维成就、单项达成和周复盘，是对用户长期坚持的反馈页面。" data-points="连续打卡天数和最高连续天数|本周复盘区域|连续 3/7/30/50/73/99 天徽章|单项达成和超额达成展示">
+            <img src="assets/achievement.png" alt="成就页">
+            <div>
+              <h3>成就页：反馈与激励</h3>
+              <p>连续打卡天数、最高连续天数、周复盘、单项达成。</p>
+            </div>
+          </article>
+          <article class="shot" data-title="我的：资料与等级" data-image="assets/mine.png" data-kicker="主页面" data-description="我的页面展示用户身份信息、动态等级和个人资料入口。等级由 UserLevelRules 根据最高连续天数计算。" data-points="昵称和头像展示|LV.1-LV.7 动态等级|个人资料入口|检查更新入口">
+            <img src="assets/mine.png" alt="我的页面">
+            <div>
+              <h3>我的：资料与等级</h3>
+              <p>用户信息、动态等级、个人资料入口和检查更新入口。</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <h2>两日提交脉络</h2>
+          <p>按 Git 历史整理，不把未提交或未验证的想法写成已完成功能。</p>
+        </div>
+        <div class="grid">
+          <article class="commit">
+            <code>b191a29</code>
+            <div>
+              <h3>新增跑步任务、多次打卡、月视图和周提醒</h3>
+              <p>这是 7 月 9 日晚上的主功能扩展提交，扩展了任务目录、首页、提醒、月历和测试体系。</p>
+              <ul>
+                <li>任务数量从 6 个扩展为 7 个，新增跑步任务。</li>
+                <li>微笑、刷牙、跑步改为数值型任务，支持 1/2/3 等多次打卡目标。</li>
+                <li>新增跑步提醒配置：提醒开关、提醒时间、星期频率。</li>
+                <li>新增 DailyTaskProgress、MonthView、AchievementUnlockDialog、AchievementBadge。</li>
+                <li>新增设备集成测试、HomeStoreFlow、PersistenceSemantics、RegressionBugScan 和 fake repository。</li>
+              </ul>
+            </div>
+            <div class="commit-visual" data-title="阶段 1：跑步任务、多次打卡和周提醒" data-image="assets/edit-task-reminder.png" data-kicker="提交 b191a29" data-description="这个阶段扩展了任务目录和提醒能力：新增跑步任务，把部分任务改成可多次打卡，并加入按星期配置的提醒设置。" data-points="新增跑步任务 taskId=6|微笑、刷牙、跑步支持数值目标|跑步任务支持提醒开关、提醒时间和星期频率|新增设备集成测试和持久化测试">
+              <img src="assets/edit-task-reminder.png" alt="编辑任务提醒截图">
+              <span>对应截图：编辑任务页展示目标设置、提醒开关、提醒时间和提醒频率。</span>
+            </div>
+          </article>
+
+          <article class="commit">
+            <code>210813c</code>
+            <div>
+              <h3>创新功能四阶段、自定义习惯和动态等级</h3>
+              <p>这是 7 月 10 日中午的主功能提交，覆盖月历稳定化、智能目标、补救机制、多维成就和自定义任务 MVP。</p>
+              <ul>
+                <li>月历热力图：打卡、启用、停用、目标修改后同步刷新月视图数据。</li>
+                <li>智能目标调整：新增 GoalSuggestionRules、GoalSuggestionCard，并接入 EditTaskPage。</li>
+                <li>补救机制：新增 RecoveryInfo、RecoveryRepository、RecoveryRules，支持 70% 阈值和每周 1 次补救。</li>
+                <li>成就与周复盘：新增 AchievementRules、WeeklyReviewRules，成就页展示周完成率、最稳定/最易遗漏任务和建议。</li>
+                <li>自定义习惯：TaskInfo 扩展元数据字段，自定义 ID 从 100 开始，支持软删除和星期过滤。</li>
+                <li>用户等级：UserLevelRules 根据最高连续天数计算 LV.1-LV.7，我的页面不再写死等级。</li>
+              </ul>
+            </div>
+            <div class="commit-visual" data-title="阶段 2：创新功能四阶段和成就升级" data-image="assets/achievement-detail.png" data-kicker="提交 210813c" data-description="这个阶段加入月历稳定化、智能目标、补救机制、成就与周复盘，并实现自定义习惯 MVP 和用户等级动态化。" data-points="GoalSuggestionRules 智能目标建议|RecoveryRules 补救机制|AchievementRules 多维成就|WeeklyReviewRules 周复盘|UserLevelRules 动态等级">
+              <img src="assets/achievement-detail.png" alt="成就详情截图">
+              <span>对应截图：单项达成和超额达成区域体现多维成就扩展。</span>
+            </div>
+          </article>
+
+          <article class="commit">
+            <code>bd5583c</code>
+            <div>
+              <h3>修复预设任务名称显示为数字 ID</h3>
+              <p>根因是把 Resource 数字 id 当作字符串 key 使用，导致任务列表 fallback 显示数字。</p>
+              <ul>
+                <li>TaskDisplayMeta 增加 taskId 到资源 key 的映射。</li>
+                <li>getTaskNameString 和 TaskList.getTaskName 统一修正。</li>
+                <li>FormService 卡片侧用明确的预设中文名，避免没有 resourceManager 时显示错误。</li>
+              </ul>
+            </div>
+            <div class="commit-visual" data-title="阶段 3：预设任务名称修复" data-image="assets/add-task.png" data-kicker="提交 bd5583c" data-description="修复预设任务显示成 Resource 数字 ID 的问题，让列表和卡片正确显示早起、喝水、吃苹果等中文名称。" data-points="TaskDisplayMeta 增加名称 key 映射|TaskList 使用 getTaskNameString 解析|FormService 卡片侧使用明确中文名|截图中预设任务名称可读">
+              <img src="assets/add-task.png" alt="添加任务页截图">
+              <span>对应截图：预设任务名称已正确显示为早起、喝水等中文名称。</span>
+            </div>
+          </article>
+
+          <article class="commit">
+            <code>c7f0ec3</code>
+            <div>
+              <h3>修复个人资料身高、体重、出生日期输入问题</h3>
+              <p>根因是编辑态切换导致 TextInput 在 @Builder 重建时内容被覆盖清空。</p>
+              <ul>
+                <li>昵称、身高、体重改为始终内联 TextInput。</li>
+                <li>身高、体重旁边展示 cm/kg 单位。</li>
+                <li>性别改为行内 chip，点击即可选择。</li>
+                <li>移除 editingField、updateTextField、formatFieldValue 等旧逻辑。</li>
+              </ul>
+            </div>
+            <div class="commit-visual" data-title="阶段 4：个人资料输入修复" data-image="assets/profile-edit.png" data-kicker="提交 c7f0ec3" data-description="该提交修复个人资料页输入框被 @Builder 重建覆盖的问题，截图中可以看到昵称、性别、生日、身高、体重的编辑表单。" data-points="昵称、身高、体重改为内联 TextInput|身高体重旁显示 cm/kg 单位|性别改为行内 chip|移除 editingField 切换逻辑">
+              <img src="assets/profile-edit.png" alt="个人资料编辑截图">
+              <span>对应截图：个人资料页展示昵称、性别、出生日期、身高、体重编辑。</span>
+            </div>
+          </article>
+
+          <article class="commit">
+            <code>4221605</code>
+            <div>
+              <h3>修复自定义任务 MVP 的 P1 问题并补输入校验</h3>
+              <p>这次提交围绕自定义任务完整编辑、非执行日统计、服务卡片显示和创建校验做了收口。</p>
+              <ul>
+                <li>EditTaskPage 支持自定义任务完整编辑：名称、图标、单位、步进、执行星期、目标值、提醒。</li>
+                <li>非执行日 DayInfo 不再回退到 activeCount，dayTasks 为空时 targetTaskNum 为 0。</li>
+                <li>服务卡片 FormService/FormAbility 支持拿到 allTasks，从而显示自定义任务名。</li>
+                <li>创建自定义任务时校验时间格式、目标值和步进，非法输入用 toast 阻止创建。</li>
+                <li>新增 run-ui-smoke.ps1，用自动 UI 点击保存关键截图和布局。</li>
+              </ul>
+            </div>
+            <div class="commit-visual" data-title="阶段 5：自定义任务 P1 修复和校验" data-image="assets/custom-task-form.png" data-kicker="提交 4221605" data-description="围绕自定义任务做收口：完整编辑、非执行日统计、服务卡片名称、创建输入校验，以及 UI smoke 自动截图脚本。" data-points="EditTaskPage 支持完整编辑自定义任务|非执行日 targetTaskNum=0|服务卡片显示自定义任务名|时间、目标值、步进输入校验|新增 run-ui-smoke.ps1">
+              <img src="assets/custom-task-form.png" alt="自定义习惯表单截图">
+              <span>对应截图：自定义习惯创建表单展示名称、图标、类型、目标、单位、执行星期。</span>
+            </div>
+          </article>
+
+          <article class="commit">
+            <code>206c04b</code>
+            <div>
+              <h3>修复代码审查发现的 6 个问题</h3>
+              <p>这是审查后的质量修复提交，集中处理成就、提醒、卡片和补救流程中的边界问题。</p>
+              <ul>
+                <li>周复盘不再在 domain 层解析 resource 文案，改由 AchievementPage 根据 taskId 解析实际名称。</li>
+                <li>自定义任务关闭提醒时也会调用 updateTaskAlert，避免 reminder 残留。</li>
+                <li>自定义任务 updateTaskTarget 后，如果提醒开启，会正确更新提醒。</li>
+                <li>归档自定义任务后，服务卡片不再使用过期 dayTasks。</li>
+                <li>useRecoveryToday 复用 onAllTasksCompleted，确保补救也能触发成就解锁检测。</li>
+              </ul>
+            </div>
+            <div class="commit-visual" data-title="阶段 6：代码审查后的质量修复" data-image="assets/achievement.png" data-kicker="提交 206c04b" data-description="这个阶段处理代码审查发现的 6 个问题，重点修复周复盘名称解析、提醒更新、归档卡片和补救成就解锁。" data-points="周复盘按 taskId 在页面层解析名称|自定义任务关闭提醒会同步更新|自定义任务目标变化后更新提醒|归档后卡片不使用过期 dayTasks|补救复用成就解锁检测">
+              <img src="assets/achievement.png" alt="成就页顶部截图">
+              <span>对应截图：成就页顶部展示连续天数、最高连续天数和本周复盘。</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <h2>功能模块覆盖</h2>
+          <p>这里把截图没有完全展示的内容，用代码模块和测试文件说明清楚。</p>
+        </div>
+        <div class="grid cols-3">
+          <article class="card feature-card" data-title="任务体系：预设任务 + 自定义任务" data-image="assets/add-task.png" data-kicker="功能模块" data-description="任务体系由 TaskCatalog、TaskInfo、TaskDisplayMeta、AddTaskPage、EditTaskPage 和 HomeStore 共同支撑。" data-points="预设任务 ID 0-6|自定义任务 ID 从 100 开始|支持名称、图标、单位、步进、执行星期|支持归档软删除">
+            <img src="assets/add-task.png" alt="添加任务页">
+            <div class="feature-copy">
+            <span class="tag">任务体系</span>
+            <h3>预设任务 + 自定义任务</h3>
+            <p>TaskCatalog 定义预设任务；TaskInfo 扩展自定义任务元数据；AddTaskPage 和 EditTaskPage 负责创建与编辑；HomeStore 负责 create/update/archive。</p>
+            </div>
+          </article>
+          <article class="card feature-card" data-title="打卡规则：一次性、数值、时间目标" data-image="assets/checkin-feedback.png" data-kicker="功能模块" data-description="打卡反馈弹窗展示任务图标、任务名称、目标值和完成状态；底层规则由 TaskRules 和 DayInfo/DayTask 统计共同完成。" data-points="ONCE 一次完成|VALUE 按 step 累加|TIME 按时间目标完成|完成后参与当天进度统计">
+            <img src="assets/checkin-feedback.png" alt="打卡反馈弹窗">
+            <div class="feature-copy">
+            <span class="tag">打卡规则</span>
+            <h3>一次性、数值、时间目标</h3>
+            <p>TaskRules 支持 ONCE、VALUE、TIME 三种任务类型；打卡后弹窗反馈任务状态，完成结果参与 DayInfo 统计。</p>
+            </div>
+          </article>
+          <article class="card feature-card" data-title="日期视图：周视图 + 月视图" data-image="assets/month-view.png" data-kicker="功能模块" data-description="日期视图让用户从一周和一个月两个尺度查看完成情况，便于回顾历史和定位某一天。" data-points="WeekCalendar 展示周粒度|MonthView 展示 6x7 月历|HomeStore 维护 monthViewData|完成状态通过标识展示">
+            <img src="assets/month-view.png" alt="月视图">
+            <div class="feature-copy">
+            <span class="tag">日期视图</span>
+            <h3>周视图 + 月视图</h3>
+            <p>WeekCalendar 展示周粒度入口；MonthView 展示 6x7 月历网格；HomeStore 维护 monthViewDate、monthViewData 和日期选择行为。</p>
+            </div>
+          </article>
+          <article class="card feature-card" data-title="提醒能力：时间任务和跑步提醒" data-image="assets/edit-task-reminder.png" data-kicker="功能模块" data-description="编辑任务页提供提醒开关、提醒时间和提醒频率；ReminderService 根据任务类型生成对应提醒。" data-points="TIME 任务可从 targetValue 生成提醒|跑步任务使用 alertStartTime 和 alertFrequency|支持按星期选择提醒频率|保存后进入仓储和提醒服务更新流程">
+            <img src="assets/edit-task-reminder.png" alt="编辑任务提醒配置">
+            <div class="feature-copy">
+            <span class="tag">提醒能力</span>
+            <h3>时间任务和跑步提醒</h3>
+            <p>ReminderService 支持 TIME 任务从 targetValue 生成提醒，也支持跑步任务从 alertStartTime + alertFrequency 生成按星期提醒。</p>
+            </div>
+          </article>
+          <article class="card feature-card" data-title="成就激励：连续天数、多维成就、周复盘" data-image="assets/achievement.png" data-kicker="功能模块" data-description="成就激励是应用的长期反馈层，包含连续天数、徽章、单项达成、超额达成和周复盘建议。" data-points="ConsecutiveDaysRules 计算连续天数|AchievementRules 计算多维成就|WeeklyReviewRules 生成周复盘|AchievementPage 汇总展示">
+            <img src="assets/achievement.png" alt="成就页">
+            <div class="feature-copy">
+            <span class="tag">成就激励</span>
+            <h3>连续天数、多维成就、周复盘</h3>
+            <p>ConsecutiveDaysRules、AchievementRules、WeeklyReviewRules 共同支持连续天数、补救、全勤周、单项达成和周复盘建议。</p>
+            </div>
+          </article>
+          <article class="card feature-card" data-title="个人中心：资料保存和动态等级" data-image="assets/profile-edit.png" data-kicker="功能模块" data-description="个人中心承载用户信息展示和资料编辑入口，资料页支持头像、昵称、性别、生日、身高和体重。" data-points="ProfileInfo 保存资料字段|ProfileStore 管理加载和保存|ProfileRepository 负责持久化|UserLevelRules 计算等级">
+            <img src="assets/profile-edit.png" alt="个人资料编辑页">
+            <div class="feature-copy">
+            <span class="tag">个人中心</span>
+            <h3>资料保存和动态等级</h3>
+            <p>ProfileInfo、ProfileStore、ProfileRepository 支持资料保存；UserLevelRules 根据最高连续天数计算我的页面等级。</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <h2>测试与验证</h2>
+          <p>本节只记录实际跑过或仓库中明确存在的验证内容。</p>
+        </div>
+        <div class="grid cols-2">
+          <div class="terminal">
+            <code>最近一轮设备验证：
+
+devecocli device list
+设备在线：127.0.0.1:5555
+
+devecocli build
+结果：BUILD SUCCESSFUL
+
+powershell -ExecutionPolicy Bypass -File scripts/run-ohos-test.ps1 -Device 127.0.0.1:5555
+结果：Tests run: 18, Failure: 0, Error: 0, Pass: 18
+
+powershell -ExecutionPolicy Bypass -File scripts/run-ui-smoke.ps1 -Device 127.0.0.1:5555 -SkipBuild
+结果：UI smoke passed
+产物：artifacts/ui-smoke</code>
+          </div>
+          <div class="evidence">
+            <h3>测试文件规模</h3>
+            <p>当前仓库有 14 个本地测试文件和 3 个 ohosTest 文件；源码中包含 83 个 describe 块以及覆盖 describe/it 的 396 处测试声明。</p>
+            <ul class="plain-list">
+              <li>CustomTask.test.ets：自定义任务、星期过滤、归档、快照。</li>
+              <li>GoalSuggestion.test.ets：智能目标调整边界。</li>
+              <li>Recovery.test.ets：补救规则和连续天数不中断。</li>
+              <li>AchievementUpgrade.test.ets / WeeklyReview.test.ets：多维成就和周复盘。</li>
+              <li>ProfileStore.test.ets：个人资料保存、重载、校验和展示格式。</li>
+              <li>DeviceIntegration.test.ets：数据库、仓储、偏好、提醒和完整启用打卡流程。</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note">
+          说明：页面截图已用手动补全版本重新校对，打卡反馈、个人资料编辑、自定义习惯、提醒配置都使用对应页面截图。
+          测试数量部分只写实际跑通的 18 个设备集成测试；本地测试规模写为测试声明和测试文件数量，避免把静态统计误写成已执行通过数。
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="featureModal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" type="button" aria-label="关闭" data-close-modal>×</button>
+      <div class="modal-phone">
+        <img id="modalImage" src="assets/home.png" alt="">
+      </div>
+      <div class="modal-copy">
+        <p class="modal-kicker" id="modalKicker">功能模块</p>
+        <h3 id="modalTitle">功能详情</h3>
+        <p id="modalDescription"></p>
+        <ul class="modal-points" id="modalPoints"></ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="wrap">
+      本展示页位置：<code>artifacts/work-showcase/index.html</code>。
+      图片素材位置：<code>artifacts/work-showcase/assets</code>。
+      内容依据当前 Git 提交历史、源码结构和最近一轮设备验证整理。
+    </div>
+  </footer>
+  <script>
+    const modal = document.querySelector('#featureModal');
+    const modalImage = document.querySelector('#modalImage');
+    const modalKicker = document.querySelector('#modalKicker');
+    const modalTitle = document.querySelector('#modalTitle');
+    const modalDescription = document.querySelector('#modalDescription');
+    const modalPoints = document.querySelector('#modalPoints');
+
+    function openModal(card) {
+      const title = card.dataset.title || card.querySelector('h3')?.textContent || '功能详情';
+      const image = card.dataset.image || card.querySelector('img')?.getAttribute('src') || 'assets/home.png';
+      const kicker = card.dataset.kicker || '功能模块';
+      const description = card.dataset.description || card.querySelector('p')?.textContent || '';
+      const points = (card.dataset.points || '').split('|').filter(Boolean);
+
+      modalImage.src = image;
+      modalImage.alt = title;
+      modalKicker.textContent = kicker;
+      modalTitle.textContent = title;
+      modalDescription.textContent = description;
+      modalPoints.innerHTML = '';
+
+      points.forEach((point) => {
+        const li = document.createElement('li');
+        li.textContent = point;
+        modalPoints.appendChild(li);
+      });
+
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('.shot, .commit-visual, .feature-card').forEach((card) => {
+      card.tabIndex = 0;
+      card.addEventListener('click', () => openModal(card));
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openModal(card);
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-close-modal]').forEach((button) => {
+      button.addEventListener('click', closeModal);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modal.classList.contains('open')) {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
